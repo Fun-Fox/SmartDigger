@@ -99,7 +99,7 @@ class AppiumInspector:
                 color = random.sample(colors, 1)[0]
 
                 # 绘制边框
-                draw.rectangle([x1 - 5, y1 - 5, x2 - 5, y2 - 5], outline=color, width=5)
+                draw.rectangle([x1 + 5, y1 + 5, x2 - 5, y2 - 5], outline=color, width=5)
 
                 # 填充框内区域透明图层
 

@@ -1,0 +1,5 @@
+appium-python-client
+Pillow
+python-dotenv
+requests
+sqlite3

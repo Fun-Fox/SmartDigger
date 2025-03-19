@@ -5,9 +5,6 @@ from base64 import b64encode
 from dotenv import load_dotenv
 from typing import Dict, Any
 import logging
-from PIL import Image
-import io
-import base64
 
 load_dotenv()
 
@@ -150,7 +147,7 @@ class VisionModelService:
         }
     
         分析要求：
-        1. 判断手机页面是否存在弹框（popup_exists）。弹框通常是一个覆盖在主界面上的小窗口或对话框，具有独立的标题栏和按钮。
+        1. 判断手机页面是否存在弹框（popup_exists）。弹框通常是一个覆盖在主界面上的小窗口或对话框。
         2. 若存在弹窗，找到关闭/忽略/取消操作按钮的数字标记。这些按钮通常用于关闭弹框。
         3. 请仔细区分弹框和主界面元素，确保不会将主界面误判为弹框。
 

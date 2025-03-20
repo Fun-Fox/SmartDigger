@@ -29,7 +29,7 @@ wheels/
 *.sln
 *.sw?
 
-# Environment
+
 .env
 .venv
 env/
@@ -37,12 +37,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+tmp/
 # Logs and databases
 *.log
 *.sqlite
 *.db
 *.sql
+*.md
 
 # Screenshots
 screenshots/

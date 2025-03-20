@@ -1,18 +1,19 @@
 import os
+import time
 
 from PIL import ImageDraw, ImageFont  # 添加 ImageFont 导入
 import re
 import random
-import logging
 from source.services.recorder import Recorder
 import shutil
+from source.utils.log_config import setup_logger
 
 
 class ImageProcessor:
     """处理图片的类，包括灰度转换、绘制边框等操作"""
 
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        self.logger = setup_logger(__name__)
         self.recorder = Recorder()
 
     def convert_to_grayscale(self, image):
@@ -70,8 +71,8 @@ class ImageProcessor:
             x1, y1, x2, y2 = map(int, matches)
             color_groups = [
                 ["red", "maroon", "coral"],  # 红色组
-                ["green", "olive", "lime"],  # 绿色组
-                ["blue", "navy", "teal"]  # 蓝色组
+                ["green", "olive"],  # 绿色组
+                ["blue", "navy"]  # 蓝色组
             ]
             # 根据 element_id 选择颜色组
             group_index = element_id % 3
@@ -87,7 +88,7 @@ class ImageProcessor:
             font = ImageFont.truetype(font_path, size=40)
             text = f"{element_id + 1}"
             text_x = x2 - font.getmask(text).size[0] - 30
-            text_y = y1
+            text_y = y1 + 10
             draw.text((text_x + 10, text_y), text, fill=color, font=font)
 
         # 保存绘制边框后的图像
@@ -100,7 +101,7 @@ class ImageProcessor:
 
         return marked_screenshot_path, single_color_screenshot_path
 
-    def save_image(self, image, path, format='PNG', quality=85):
+    def save_image(self, image, path, format='JPEG', quality=85):
         """保存图片到指定路径
         
         参数:
@@ -120,12 +121,13 @@ class ImageProcessor:
         """
         try:
             shutil.copy(source_path, destination_path)
-            print(f"图片已成功从 {source_path} 复制到 {destination_path}")
+            self.logger.info(f"图片已成功从 {source_path} 复制到 {destination_path}")
         except Exception as e:
-            print(f"复制图片时发生错误: {e}")
+            self.logger.info(f"复制图片时发生错误: {e}")
 
     def save_screenshot(self, image, directory_path, screenshot_id, suffix, format='PNG'):
         """保存截图到指定路径"""
         screenshot_path = os.path.join(directory_path, f'{screenshot_id}_{suffix}.{format.lower()}')
         self.save_image(image, screenshot_path, format=format)
+
         return screenshot_path

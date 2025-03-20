@@ -6,3 +6,4 @@ sqlite
 lxml
 opencv-python
 flask
+schedule

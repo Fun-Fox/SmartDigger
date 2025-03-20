@@ -1,3 +1,3 @@
-from api import diagnose
+from .api import app
 
-__all__ = ['diagnose']
+__all__ = ['app']

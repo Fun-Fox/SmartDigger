@@ -5,12 +5,12 @@ from PIL import Image
 import xml.etree.ElementTree as ET
 import os
 import datetime
-import logging
 from appium.options.android import UiAutomator2Options
 from .services.image_processor import ImageProcessor
 from .services.vision_model import VisionModelService
 from dotenv import load_dotenv
-
+from source.utils.log_config import setup_logger
+logger = setup_logger(__name__)
 load_dotenv()
 
 __all__ = ['AppiumInspector', 'capture_and_mark_elements', 'diagnose_and_handle']
@@ -60,21 +60,24 @@ def capture_and_mark_elements(screenshot, device_name, app_package, page_source)
         grayscale_image, directory_path, screenshot_id, 'grayscale_screenshot')
 
     # 解析XML并获取元素边界信息
-
-    root = ET.fromstring(page_source)
+    try:
+        root = ET.fromstring(page_source)
+    except ET.ParseError as e:
+        logger.error(f"XML 格式错误: {str(e)}")
+        raise e
 
     # 检查可点击元素的数量
     is_more_clickable_elements = False
     clickable_elements = [element for element in root.iter() if element.get("clickable") == "true"]
-    print(clickable_elements)
+    logger.info(clickable_elements)
     clickable_elements_bounds_list = [(elements.get('bounds'), i) for i, elements in enumerate(clickable_elements)
                                       if
                                       elements.get('bounds')]
-    print(clickable_elements_bounds_list)
+    logger.info(clickable_elements_bounds_list)
 
     clickable_elements_limit = 12
     if len(clickable_elements) > clickable_elements_limit:
-        logging.info(f"界面可点击元素数量超过{clickable_elements_limit}个，跳过处理")
+        logger.info(f"界面可点击元素数量超过{clickable_elements_limit}个，跳过处理")
         is_more_clickable_elements = True
 
     # 重新打开灰度图进行画框
@@ -86,7 +89,7 @@ def capture_and_mark_elements(screenshot, device_name, app_package, page_source)
                                                                                                 clickable_elements_bounds_list,
                                                                                                 screenshot_id,
                                                                                                 directory_path)
-    logging.info(f"截图已保存至: {os.path.abspath(marked_screenshot_path)}")
+    logger.info(f"截图已保存至: {os.path.abspath(marked_screenshot_path)}")
 
     return screenshot_id, is_more_clickable_elements, os.path.abspath(grayscale_screenshot_path), os.path.abspath(
         marked_screenshot_path), os.path.abspath(single_color_screenshot_path)
@@ -97,14 +100,16 @@ def diagnose_and_handle(grayscale_screenshot_path, marked_screenshot_path, ):
         vision_model_service = VisionModelService()
         analysis_result = vision_model_service.analyze_screenshot(grayscale_screenshot_path,
                                                                   marked_screenshot_path)
+        logger.info(f'视觉分析结果:{analysis_result}')
         if analysis_result.get('popup_exists', False):
             popup_id = analysis_result.get('popup_cancel_button')
             if popup_id:
                 return popup_id
-
             else:
-                logging.info("检测到弹窗，但未找到弹窗标识，使用默认方法关闭。")
+                logger.info("检测到弹窗，但未找到弹窗标识，使用默认方法关闭。")
+                return None
         else:
-            logging.info("未检测到弹窗")
+            logger.info("未检测到弹窗")
+            return None
     except Exception as e:
-        logging.error(f"诊断过程中发生错误: {e}")
+        logger.error(f"诊断过程中发生错误: {e}")

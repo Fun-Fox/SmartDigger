@@ -8,21 +8,17 @@
 - 主流程控制
 """
 
-import logging
-
 from source import AppiumInspector, capture_and_mark_elements, diagnose_and_handle
 from source.services import ElementManager, click_element_close
 from source.tools import AdbHelper
 from dotenv import load_dotenv
 
 from source.services.recorder import Recorder
+from source.utils.log_config import setup_logger
+logger = setup_logger(__name__)
 
 # 加载环境变量
 load_dotenv()
-
-# 配置日志
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 def run_appium_inspector(device_name, app_package, app_activity, device_resolution):
     """运行 Appium Inspector 进行应用界面分析
@@ -37,13 +33,12 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         ValueError: 当必要参数为空时抛出
     """
     if not all([device_name, app_package, app_activity, device_resolution]):
-        logging.error("无效的输入参数：device_name、app_package 或 app_activity 为空。")
+        logger.error("无效的输入参数：device_name、app_package 或 app_activity 为空。")
         raise ValueError("device_name、app_package 和 app_activity 必须为非空字符串。")
 
     try:
         # 初始化 Appium Inspector
         driver = AppiumInspector(device_name, app_package, app_activity, device_resolution).init_driver()
-
 
         # 获取截图
         screenshot = driver.get_screenshot_as_png()
@@ -61,18 +56,19 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
             # 进行弹窗识别
             popup_id = diagnose_and_handle(grayscale_screenshot_path, marked_screenshot_path, )
 
-            logging.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
+            logger.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
             # 获取弹窗中心点
             center_x, center_y = element_manager.element_center(single_color_screenshot_path,
                                                                 popup_id, screenshot_id)
+
             # 点击弹窗
             click_element_close(driver, center_x, center_y)
-            logging.info(f"弹窗关闭成功")
+            logger.info(f"弹窗关闭成功")
             driver.quit()
             recorder.close()
-        logging.info(f"运行结束")
+        logger.info(f"运行结束")
     except Exception as e:
-        logging.error(f"运行 Appium Inspector 时发生错误: {e}")
+        logger.error(f"运行 Appium Inspector 时发生错误: {e}")
         raise
 
 
@@ -91,14 +87,14 @@ def main():
 
         # 参数校验
         if not all([device_name, app_package, app_activity]):
-            logging.error("无法获取设备名称、应用包名或应用活动。")
+            logger.error("无法获取设备名称、应用包名或应用活动。")
             return
 
         # 启动界面分析
         run_appium_inspector(device_name, app_package, app_activity, device_resolution)
 
     except Exception as e:
-        logging.error(f"发生意外错误: {e}")
+        logger.error(f"发生意外错误: {e}")
 
 
 if __name__ == '__main__':

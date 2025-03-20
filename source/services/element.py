@@ -36,8 +36,6 @@ class ElementManager:
         异常:
             ValueError: 当未找到指定元素时抛出
         """
-        print(f"点击元素 ID: {element_id}, 截图 ID: {screenshot_id}")
-
         # 从数据库获取元素坐标
         self.recorder.cursor.execute(
             'SELECT center_x, center_y FROM elements WHERE element_id = ? and screenshot_id = ?',
@@ -52,7 +50,7 @@ class ElementManager:
                 os.makedirs(template_dir)
 
             self.imageProcessor.copy_image(single_color_screenshot_path,
-                                           os.path.join(template_dir, f"{screenshot_id}.png"))
+                                           os.path.join(template_dir, f"{screenshot_id}.jpeg"))
             self.recorder.save_template(screenshot_id, center_x, center_y)
             return center_x, center_y
         else:

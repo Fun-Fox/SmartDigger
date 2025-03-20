@@ -2,6 +2,8 @@ import sqlite3
 import re
 import os
 from dotenv import load_dotenv
+from source.utils.log_config import setup_logger
+
 
 load_dotenv()
 
@@ -32,11 +34,12 @@ class Recorder:
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         skip_center_x INTEGER,
                         skip_center_y INTEGER,
-                        screenshot_id TEXT NOT NULL
+                        template_id TEXT NOT NULL
                     )
                 ''')
 
         self.conn.commit()
+        self.logger = setup_logger(__name__)
 
     def save_template(self, template_id, skip_center_x, skip_center_y):
         self.cursor.execute('INSERT INTO template (template_id, skip_center_x, skip_center_y) VALUES (?, ?, ?)',
@@ -44,9 +47,12 @@ class Recorder:
         self.conn.commit()
 
     def get_template_center_point(self, template_id):
-        self.cursor.execute('SELECT center_x,center_y FROM template WHERE template_id = ?', (template_id,))
+        self.cursor.execute('SELECT skip_center_x,skip_center_y FROM template WHERE template_id = ?', (template_id,))
         rows = self.cursor.fetchall()
-        return rows[0][0], rows[0][1]
+        self.logger.info(f"{template_id},模板匹配结果为: {rows}")
+        if rows:
+            return rows[0][0], rows[0][1]
+        return None, None
 
     def save_bound(self, bounds, screenshot_id, element_id):
         matches = re.findall(r'\d+', bounds)

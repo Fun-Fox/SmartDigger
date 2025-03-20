@@ -4,7 +4,8 @@ import requests
 from base64 import b64encode
 from dotenv import load_dotenv
 from typing import Dict, Any
-import logging
+from source.utils.log_config import setup_logger
+
 
 load_dotenv()
 
@@ -21,7 +22,7 @@ class VisionModelService:
         """Initialize the vision model service with API configurations."""
         self.api_url = self._get_api_url()
         self.api_key = self._get_api_key()
-        self.logger = logging.getLogger(__name__)
+        self.logger = setup_logger(__name__)
 
     @staticmethod
     def _get_api_url() -> str:
@@ -74,6 +75,8 @@ class VisionModelService:
             
         Raises:
             Exception: If the analysis fails or the response cannot be parsed.
+            :param grayscale_screenshot_path:
+            :param marked_screenshot_path:
         """
         for attempt in range(self.MAX_RETRIES):
             try:
@@ -90,7 +93,6 @@ class VisionModelService:
 
                 payload = self._build_payload(screenshot_base64, marked_screenshot_base64)
                 response = requests.post(self.api_url, json=payload, headers=headers)
-                print(response.json())
                 if response.status_code == 200:
                     return self._process_response(response.json())
 

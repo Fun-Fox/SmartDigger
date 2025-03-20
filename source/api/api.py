@@ -1,21 +1,39 @@
+import uuid
 from datetime import datetime
 
-from flask import Flask, request, jsonify
-from services import vision_analysis
-import logging
+from flask import Flask, request, jsonify, g
+from .services import vision_analysis
 from dotenv import load_dotenv
 import os
 import base64
+from source.utils.log_config import setup_logger
+
+logger = setup_logger(__name__)
 
 load_dotenv()
 
 app = Flask(__name__)
 
-# 配置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+__all__ = ['app']
 
-__all = ['diagnose']
+# 获取当前脚本的绝对路径
+current_file_path = os.path.abspath(__file__)
+# 推导项目根目录（假设项目根目录是当前脚本的祖父目录）
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
+
+tmp_dir = os.path.join(project_root, os.getenv('TMP_DIR'))
+
+
+@app.after_request
+def set_content_type(response):
+    response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
+
+@app.before_request
+def before_request():
+    # 为每个请求生成唯一的 trace_id
+    g.trace_id = str(uuid.uuid4())
 
 
 @app.route('/api/v1/diagnose', methods=['POST'])
@@ -51,8 +69,9 @@ def diagnose():
         # 动态生成截图文件名
         device_name = data['devices_name']  # 获取设备名称
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # 生成时间戳
-        screenshot_filename = f"{device_name}_{timestamp}.png"  # 拼接文件名
-        screenshot_path = os.path.join('/tmp', screenshot_filename)  # 生成完整路径
+        screenshot_filename = f"{device_name}_{timestamp}.jpeg"  # 拼接文件名
+
+        screenshot_path = os.path.join(tmp_dir, screenshot_filename)  # 生成完整路径
 
         try:
             with open(screenshot_path, 'wb') as f:
@@ -63,7 +82,7 @@ def diagnose():
 
         # 动态生成 XML 文件名
         xml_filename = f"{device_name}_{timestamp}_hierarchy.xml"  # 拼接文件名
-        xml_path = os.path.join('/tmp', xml_filename)  # 生成完整路径
+        xml_path = os.path.join(tmp_dir, xml_filename)  # 生成完整路径
 
         # 保存 XML 文本到临时文件
         xml_text = data['xml_file']
@@ -77,11 +96,12 @@ def diagnose():
         # 调用诊断服务
         try:
             center_x, center_y = vision_analysis(screenshot_path, xml_path, device_name)
+            logger.info("视觉诊断结果：" + str(center_x) + "," + str(center_y))
             if center_x is None or center_y is None:
-                logger.info("视觉诊断为非弹窗，麻烦人工查看")
-                return jsonify({"msg": "视觉诊断为非弹窗，麻烦人工查看"}), 500
-            return jsonify({"msg": "视觉诊断为弹窗，点击坐标为：" + str(center_x) + "," + str(center_y),
-                            "script": adb_tap_code(device_name, center_x, center_y)}), 200
+                logger.info("系统诊断为非弹窗，麻烦人工排查")
+                return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500
+            return jsonify({"msg": "视觉诊断为弹窗，跳过的坐标为：" + str(center_x) + "," + str(center_y),
+                            "script": adb_tap_code(device_name, center_x, center_y).strip()}), 200,
         except Exception as e:
             logger.error(f"诊断服务调用失败: {str(e)}")
             return jsonify({"msg": "诊断服务调用失败"}), 500
@@ -91,24 +111,11 @@ def diagnose():
         return jsonify({"msg": str(e)}), 500
 
 
-def adb_tap_code(device_name, x, y):
+def adb_tap_code(device_name, x, y) -> str:
     return f"""
-     def tap_on_device(device_name, x, y):
-            \"\"\"
-            在指定设备的屏幕上模拟点击指定坐标
-            :param device_name: 设备名称（可通过 get_device_name 获取）
-            :param x: 点击的 X 坐标
-            :param y: 点击的 Y 坐标
-            \"\"\"
-            try:
-                # 使用 adb shell input tap 命令模拟点击
-                subprocess.run(
-                    ['adb', '-s', device_name, 'shell', 'input', 'tap', str(x), str(y)],
-                    check=True
-                )
-                logger.info(f"在设备 {device_name} 上成功点击坐标 ({x}, {y})")
-            except subprocess.CalledProcessError as e:
-                logger.error(f"在设备 {device_name} 上点击坐标 ({x}, {y}) 失败")
-                logger.error(e)
-                raise
+        import subprocess
+        subprocess.run(
+            ['adb', '-s', {device_name}, 'shell', 'input', 'tap', str({x}), str({y})],
+            check=True
+        ) 
     """

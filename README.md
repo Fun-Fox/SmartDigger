@@ -39,6 +39,12 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
     - 200: 成功
     - 500: 失败
 
+```json
+{
+  "msg": "视觉诊断为弹窗，跳过的坐标为：540,1805",
+  "script": "import subprocess\n        subprocess.run(\n            ['adb', '-s', your_device_name, 'shell', 'input', 'tap', str(540), str(1805)],\n            check=True\n        )"
+}
+```
 
 ## 运行流程
 
@@ -84,3 +90,9 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 
 - 运行日志
   ![img.png](doc/case-2-log.png)
+
+### 弹窗模版
+
+![img.png](doc/template-1.jpeg)
+
+![img.png](doc/template-2.png)

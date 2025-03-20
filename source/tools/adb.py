@@ -1,9 +1,9 @@
 import subprocess
 from dotenv import load_dotenv
-import logging
+from source.utils.log_config import setup_logger
 
+logger = setup_logger(__name__)
 load_dotenv()
-logger = logging.getLogger(__name__)
 __all__ = ['AdbHelper']
 
 

@@ -38,10 +38,15 @@ class Recorder:
 
         self.conn.commit()
 
-    def save_template(self, screenshot_id, skip_center_x, skip_center_y):
-        self.cursor.execute('INSERT INTO template (screenshot_id, skip_center_x, skip_center_y) VALUES (?, ?, ?)',
-                            (screenshot_id, skip_center_x, skip_center_y))
+    def save_template(self, template_id, skip_center_x, skip_center_y):
+        self.cursor.execute('INSERT INTO template (template_id, skip_center_x, skip_center_y) VALUES (?, ?, ?)',
+                            (template_id, skip_center_x, skip_center_y))
         self.conn.commit()
+
+    def get_template_center_point(self, template_id):
+        self.cursor.execute('SELECT center_x,center_y FROM template WHERE template_id = ?', (template_id,))
+        rows = self.cursor.fetchall()
+        return rows[0][0], rows[0][1]
 
     def save_bound(self, bounds, screenshot_id, element_id):
         matches = re.findall(r'\d+', bounds)

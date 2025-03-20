@@ -104,9 +104,7 @@ def diagnose_and_handle(grayscale_screenshot_path, marked_screenshot_path, ):
 
             else:
                 logging.info("检测到弹窗，但未找到弹窗标识，使用默认方法关闭。")
-                return 0
         else:
             logging.info("未检测到弹窗")
-            return 0
     except Exception as e:
         logging.error(f"诊断过程中发生错误: {e}")

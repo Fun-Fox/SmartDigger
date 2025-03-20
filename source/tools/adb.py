@@ -6,9 +6,29 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 __all__ = ['AdbHelper']
 
+
 class AdbHelper:
     """ADB 操作工具类"""
-    
+
+    @staticmethod
+    def tap_on_device(device_name, x, y):
+        """
+        在指定设备的屏幕上模拟点击指定坐标
+        :param device_name: 设备名称（可通过 get_device_name 获取）
+        :param x: 点击的 X 坐标
+        :param y: 点击的 Y 坐标
+        """
+        try:
+            # 使用 adb shell input tap 命令模拟点击
+            subprocess.run(
+                ['adb', '-s', device_name, 'shell', 'input', 'tap', str(x), str(y)],
+                check=True
+            )
+            logger.info(f"在设备 {device_name} 上成功点击坐标 ({x}, {y})")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"在设备 {device_name} 上点击坐标 ({x}, {y}) 失败: {str(e)}")
+            raise
+
     @staticmethod
     def get_device_name():
         """获取设备名称"""

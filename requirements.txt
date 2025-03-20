@@ -3,3 +3,6 @@ Pillow
 python-dotenv
 requests
 sqlite
+lxml
+opencv-python
+flask

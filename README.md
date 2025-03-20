@@ -22,6 +22,24 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 4. **数据记录模块**：使用 SQLite 存储元素边界信息，并生成 Markdown 格式报告。
 5. **API 服务模块**：提供 RESTful API 接口，支持远程调用诊断功能。
 
+## API 接口说明
+
+### 诊断接口
+
+- **URL**: `/api/v1/diagnose`
+- **Method**: `POST`
+- **请求参数 (JSON)**:
+    - `screenshot`: Base64 编码的手机屏幕截图
+    - `xml_file`: XML层级结构文本
+    - `devices_name`: 设备名称
+- **返回结果**:
+    - `msg`: 诊断结果消息
+    - `script`: 生成的 ADB 点击脚本（如果诊断为弹窗）
+- **状态**：
+    - 200: 成功
+    - 500: 失败
+
+
 ## 运行流程
 
 1. **设备连接**：通过 ADB 连接 Android 设备，获取设备信息。
@@ -48,7 +66,9 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 ## 运行效果
 
 ### Case 1
+
 系统
+
 - 截图标注
   ![img.png](doc/case-1-img.png)
 
@@ -56,14 +76,11 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
   ![img.png](doc/case-1-log.png)
 
 ### Case 2
+
 抖音
+
 - 截图标注
   ![img.png](doc/case-2-img.png)
 
 - 运行日志
   ![img.png](doc/case-2-log.png)
-
-## 参考
-
-- [mobile_agent](https://github.com/QwenLM/Qwen2.5-VL/blob/main/cookbooks/mobile_agent.ipynb)
-- [browser_use 最强基于Python的AI浏览器自动化](https://mp.weixin.qq.com/s/7NQO4Yd0AANaReKrhk3SXg)

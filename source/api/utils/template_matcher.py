@@ -8,9 +8,10 @@ logger = logging.getLogger(__name__)
 # 获取当前脚本的绝对路径
 current_file_path = os.path.abspath(__file__)
 # 推导项目根目录（假设项目根目录是当前脚本的祖父目录）
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_path))))
 
 load_dotenv()
+
 
 class TemplateMatcher:
     def __init__(self):
@@ -41,7 +42,10 @@ class TemplateMatcher:
         logger.info("未匹配到任何弹窗模板")
         return False
 
+
 if __name__ == '__main__':
     template_matcher = TemplateMatcher()
-    result = template_matcher.match_known_popups('D:\Code\SmartDigger\screenshots\HJS5T19718001742\HJS5T19718001742_20250319_181835_com.android.settings_single_color_screenshot.jpeg')
+    result, template_file = template_matcher.match_known_popups(
+        'D:\Code\SmartDigger\screenshots\HJS5T19718001742\HJS5T19718001742_20250319_181835_com.android.settings_single_color_screenshot.jpeg')
     print(result)
+    print(template_file.rstrip('.png'))

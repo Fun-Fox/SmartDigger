@@ -55,14 +55,14 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         if not is_more_clickable_elements:
             # 进行弹窗识别
             popup_id = diagnose_and_handle(grayscale_screenshot_path, marked_screenshot_path, )
-
-            logger.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
+            logger.info(f"弹窗标识为: {popup_id}")
             # 获取弹窗中心点
-            center_x, center_y = element_manager.element_center(single_color_screenshot_path,
-                                                                popup_id, screenshot_id)
-
-            # 点击弹窗
-            click_element_close(driver, center_x, center_y)
+            if popup_id is not None and popup_id > 0:
+                center_x, center_y = element_manager.element_center(single_color_screenshot_path,
+                                                                    popup_id, screenshot_id)
+                # 点击弹窗
+                logger.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
+                click_element_close(driver, center_x, center_y)
             logger.info(f"弹窗关闭成功")
             driver.quit()
             recorder.close()

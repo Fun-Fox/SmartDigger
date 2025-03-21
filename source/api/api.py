@@ -112,10 +112,4 @@ def diagnose():
 
 
 def adb_tap_code(device_name, x, y) -> str:
-    return f"""
-        import subprocess
-        subprocess.run(
-            ['adb', '-s', {device_name}, 'shell', 'input', 'tap', str({x}), str({y})],
-            check=True
-        ) 
-    """
+    return f"""import subprocess;subprocess.run( ['adb', '-s', {device_name}, 'shell', 'input', 'tap', str({x}), str({y})],check=True) """

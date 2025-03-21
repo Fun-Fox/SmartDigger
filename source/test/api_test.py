@@ -1,4 +1,6 @@
 import base64
+import json
+
 import requests
 
 
@@ -28,7 +30,10 @@ def test_diagnose_api(image_path, xml_path, device_name):
         "xml_file": xml_content,
         "devices_name": device_name
     }
-
+    # print(data)
+    # 将 data 保存到 JSON 文件
+    with open("output.json", "w", encoding="utf-8") as json_file:
+        json.dump(data, json_file, indent=4)
     # 发送POST请求到诊断接口
     response = requests.post("http://localhost:5000/api/v1/diagnose", json=data)
     response.encoding = 'utf-8'
@@ -43,8 +48,8 @@ def test_diagnose_api(image_path, xml_path, device_name):
 
 if __name__ == '__main__':
     # 替换为实际的图片路径、XML文件路径和设备名称
-    image_path = "test-2.png"
-    xml_path = "hierarchy.xml"
+    image_path = "test-3.jpeg"
+    xml_path = "hierarchy-3.xml"
     device_name = "your_device_name"
 
     test_diagnose_api(image_path, xml_path, device_name)

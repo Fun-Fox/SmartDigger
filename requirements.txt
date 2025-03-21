@@ -1,8 +1,7 @@
-appium-python-client
+appium-python-client==4.5.1
 Pillow
 python-dotenv
 requests
-sqlite
 lxml
 opencv-python
 flask

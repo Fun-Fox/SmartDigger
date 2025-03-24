@@ -48,7 +48,7 @@ def cleanup_old_screenshots():
 
 
 if __name__ == '__main__':
-    tmp_dir = os.getenv('TMP_DIR')  # 截图保存路径
-    clean_old_screenshots(os.path.join(project_root, tmp_dir), do=True)
-    screenshot_dir = os.getenv('SCREENSHOT_DIR')  # 截图保存路径
-    clean_old_screenshots(os.path.join(project_root, screenshot_dir), do=True)
+    tmp_dir_1 = os.getenv('TMP_DIR')  # 截图保存路径
+    clean_old_screenshots(os.path.join(project_root, tmp_dir_1), do=False)
+    screenshot_dir_1 = os.getenv('SCREENSHOT_DIR')  # 截图保存路径
+    clean_old_screenshots(os.path.join(project_root, screenshot_dir_1), do=False)

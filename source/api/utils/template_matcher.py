@@ -42,8 +42,8 @@ class TemplateMatcher:
         return False, None
 
 
-if __name__ == '__main__':
-    template_matcher = TemplateMatcher()
-    result = template_matcher.match_known_popups('D:\Code\SmartDigger\source\\test\\test-2.png')
-    print(result)
+# if __name__ == '__main__':
+#     template_matcher = TemplateMatcher()
+#     result = template_matcher.match_known_popups('D:\Code\SmartDigger\source\\test\\test-2.png')
+#     print(result)
     # print(template_file.rstrip('.png'))

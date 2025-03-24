@@ -51,7 +51,7 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 ```shell
 nohup sh deploy.sh > logs/run.log 2>&1 &
 # 直接关闭当前终端,再打开一个查看
-ps aux |grep deploy.sh
+ps aux |grep python
 ```
 
 

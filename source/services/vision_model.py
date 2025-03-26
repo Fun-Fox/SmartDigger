@@ -64,34 +64,29 @@ class VisionModelService:
             self.logger.error(f"Rate limit exceeded: {error_message}")
             raise Exception(f"请求被拒绝，达到速率限制: {error_message}")
 
-    def analyze_screenshot(self, grayscale_screenshot_path: str, marked_screenshot_path: str) -> Dict[str, Any]:
+    def analyze_screenshot(self, marked_screenshot_image):
         """Analyze a screenshot using the vision model API.
         
         Args:
-            grayscale_screenshot_path: Path to the screenshot image file.
+            marked_screenshot_image: Path to the screenshot image file.
             
         Returns:
             A dictionary containing the analysis results.
             
         Raises:
             Exception: If the analysis fails or the response cannot be parsed.
-            :param grayscale_screenshot_path:
-            :param marked_screenshot_path:
         """
         for attempt in range(self.MAX_RETRIES):
             try:
-                with open(grayscale_screenshot_path, "rb") as image_file:
-                    screenshot_base64 = b64encode(image_file.read()).decode('utf-8')
 
-                with open(marked_screenshot_path, "rb") as image_file:
-                    marked_screenshot_base64 = b64encode(image_file.read()).decode('utf-8')
+                marked_screenshot_base64 = b64encode(marked_screenshot_image).decode('utf-8')
 
                 headers = {
                     'Content-Type': 'application/json',
                     'Authorization': f'Bearer {self.api_key}'
                 }
 
-                payload = self._build_payload(screenshot_base64, marked_screenshot_base64)
+                payload = self._build_payload(marked_screenshot_base64)
                 response = requests.post(self.api_url, json=payload, headers=headers)
                 if response.status_code == 200:
                     return self._process_response(response.json())
@@ -106,7 +101,7 @@ class VisionModelService:
 
         raise Exception("Unexpected error in analyze_screenshot")
 
-    def _build_payload(self, screenshot_base64, marked_screenshot_base64) -> Dict:
+    def _build_payload(self, marked_screenshot_base64) -> Dict:
         """Build the API request payload."""
         return {
             "model": self.DEFAULT_MODEL,

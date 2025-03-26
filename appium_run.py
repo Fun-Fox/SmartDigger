@@ -7,6 +7,10 @@
 - 设备信息获取
 - 主流程控制
 """
+import io
+
+from PIL import Image
+from lxml import etree
 
 from source import AppiumInspector, capture_and_mark_elements, diagnose_and_handle
 from source.services import ElementManager, click_element_close
@@ -15,10 +19,12 @@ from dotenv import load_dotenv
 
 from source.services.recorder import Recorder
 from source.utils.log_config import setup_logger
+
 logger = setup_logger(__name__)
 
 # 加载环境变量
 load_dotenv()
+
 
 def run_appium_inspector(device_name, app_package, app_activity, device_resolution):
     """运行 Appium Inspector 进行应用界面分析
@@ -42,24 +48,31 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
 
         # 获取截图
         screenshot = driver.get_screenshot_as_png()
-        page_source = driver.page_source
+        xml_page_struct = driver.page_source
+
         recorder = Recorder()
         element_manager = ElementManager(recorder)
-        # 生成 markdown
-        recorder.generate_markdown()
+
+        screenshot_image = Image.open(io.BytesIO(screenshot))
+
+        try:
+            xml_root = etree.fromstring(xml_page_struct)
+            clickable_elements = xml_root.xpath(".//*[@clickable='true']")
+        except Exception as e:
+            logger.error(f"XML 格式错误: {str(e)}")
+            raise e
+
         # 进行元素定位
-        (screenshot_id, is_more_clickable_elements, grayscale_screenshot_path,
-         marked_screenshot_path, single_color_screenshot_path) = capture_and_mark_elements(
-            screenshot, device_name, app_package, page_source)
+        screenshot_id, is_more_clickable_elements, marked_screenshot_image, non_clickable_area_image = capture_and_mark_elements(
+            screenshot_image, device_name, app_package, clickable_elements)
         # 进行弹窗识别
         if not is_more_clickable_elements:
             # 进行弹窗识别
-            popup_id = diagnose_and_handle(grayscale_screenshot_path, marked_screenshot_path, )
+            popup_id = diagnose_and_handle(marked_screenshot_image)
             logger.info(f"弹窗标识为: {popup_id}")
             # 获取弹窗中心点
             if popup_id is not None and popup_id > 0:
-                center_x, center_y = element_manager.element_center(single_color_screenshot_path,
-                                                                    popup_id, screenshot_id)
+                center_x, center_y = element_manager.element_center(popup_id, screenshot_id)
                 # 点击弹窗
                 logger.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
                 click_element_close(driver, center_x, center_y)

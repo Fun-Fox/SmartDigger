@@ -1,7 +1,7 @@
 import os
 import time
 
-from PIL import ImageDraw, ImageFont  # 添加 ImageFont 导入
+from PIL import ImageDraw, ImageFont, Image  # 添加 ImageFont 导入
 import re
 import random
 from source.services.recorder import Recorder
@@ -16,7 +16,7 @@ class ImageProcessor:
         self.logger = setup_logger(__name__)
         self.recorder = Recorder()
 
-    def convert_to_grayscale(self, image):
+    def convert_to_grayscale(self, image) -> Image.Image:
         """将图片转换为灰度图
         
         参数:
@@ -27,7 +27,8 @@ class ImageProcessor:
         """
         return image.convert('L')
 
-    def draw_element_borders(self, image, clickable_elements_bounds_list, screenshot_id, directory_path):
+    def draw_element_borders(self, marked_screenshot_image, clickable_elements_bounds_list, screenshot_id) -> tuple[
+        Image.Image, Image.Image]:
         """在图片上绘制元素的边框，并将不可点击部分改为单一色调（无框）
 
         参数:
@@ -40,15 +41,15 @@ class ImageProcessor:
             marked_screenshot_path: 绘制边框后的图像路径
             single_color_screenshot_path: 单一色调后的图像路径
         """
-        draw = ImageDraw.Draw(image)
+        draw = ImageDraw.Draw(marked_screenshot_image)
 
         # 创建单一色调的图像副本
-        single_color_image = image.copy()
-        single_color_draw = ImageDraw.Draw(single_color_image)
+        non_clickable_area_image = marked_screenshot_image.copy()
+        single_color_draw = ImageDraw.Draw(non_clickable_area_image)
         single_color = (192, 192, 192)  # 灰色
 
         # 将不可点击部分改为单一色调
-        width, height = image.size
+        width, height = marked_screenshot_image.size
         for x in range(width):
             for y in range(height):
                 is_clickable = False
@@ -63,6 +64,7 @@ class ImageProcessor:
 
         # 绘制可点击部分的边框和文字
         for bounds, element_id in clickable_elements_bounds_list:
+            # 将可点击元素的值存于数据库中
             if self.recorder.is_record_exist(bounds, screenshot_id):
                 continue
             self.recorder.save_bound(bounds, screenshot_id, element_id + 1)
@@ -80,6 +82,8 @@ class ImageProcessor:
             # 在组内随机选择颜色
             color = random.sample(color_group, 1)[0]
 
+            self.logger.info(f"绘制边框和文本，颜色：{color}")
+
             # 绘制边框
             draw.rectangle([x1 + 5, y1 + 5, x2 - 5, y2 - 5], outline=color, width=5)
 
@@ -91,43 +95,41 @@ class ImageProcessor:
             text_y = y1 + 10
             draw.text((text_x + 10, text_y), text, fill=color, font=font)
 
-        # 保存绘制边框后的图像
-        marked_screenshot_path = self.save_screenshot(
-            image, directory_path, screenshot_id, 'marked_screenshot', format='JPEG')
+        return marked_screenshot_image, non_clickable_area_image
+        # return marked_screenshot_path, single_color_screenshot_path
 
-        # 保存单一色调后的图像
-        single_color_screenshot_path = self.save_screenshot(
-            single_color_image, directory_path, screenshot_id, 'single_color_screenshot', format='JPEG')
+    # # 保存绘制边框后的图像
+    # marked_screenshot_path = self.save_screenshot(
+    #     image, directory_path, screenshot_id, 'marked_screenshot', format='JPEG')
+    # # directory_path = os.path.join(os.getenv('SCREENSHOT_DIR'), device_name)
+    # #
+    # # if not os.path.exists(directory_path):
+    # #     os.makedirs(directory_path)
+    # # 保存单一色调后的图像
+    # single_color_screenshot_path = self.save_screenshot(
+    #     single_color_image, directory_path, screenshot_id, 'single_color_screenshot', format='JPEG')
 
-        return marked_screenshot_path, single_color_screenshot_path
+    # template_dir = os.path.join(os.getenv('TEMPLATE_DIR'), )
+    # if not os.path.exists(template_dir):
+    #     os.makedirs(template_dir)
 
-    def save_image(self, image, path, format='JPEG', quality=85):
-        """保存图片到指定路径
-        
-        参数:
-            image: PIL Image 对象
-            path: 保存路径
-            format: 图片格式
-            quality: 图片质量（仅适用于JPEG）
-        """
-        image.save(path, format=format, quality=quality)
+    ## 存储于弹窗模版库(图形)
+    # self.imageProcessor.copy_image(single_color_screenshot_path,
+    #                                os.path.join(template_dir, f"{screenshot_id}.jpeg"))
+    # self.recorder.save_template(screenshot_id, center_x, center_y)
 
-    def copy_image(self, source_path, destination_path):
-        """将图片从源路径复制到目标路径
 
-        参数:
-            source_path: 图片的源路径
-            destination_path: 图片的目标路径
-        """
-        try:
-            shutil.copy(source_path, destination_path)
-            self.logger.info(f"图片已成功从 {source_path} 复制到 {destination_path}")
-        except Exception as e:
-            self.logger.info(f"复制图片时发生错误: {e}")
 
-    def save_screenshot(self, image, directory_path, screenshot_id, suffix, format='PNG'):
-        """保存截图到指定路径"""
-        screenshot_path = os.path.join(directory_path, f'{screenshot_id}_{suffix}.{format.lower()}')
-        self.save_image(image, screenshot_path, format=format)
 
-        return screenshot_path
+if __name__ == '__main__':
+    color_groups = [
+        ["red", "maroon", "coral"],  # 红色组
+        ["green", "olive"],  # 绿色组
+        ["blue", "navy"]  # 蓝色组
+    ]
+    # 根据 element_id 选择颜色组
+    group_index = 3 % 3
+    color_group = color_groups[group_index]
+    # 在组内随机选择颜色
+    color = random.sample(color_group, 1)[0]
+    print(color)

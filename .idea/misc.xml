@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="ADBCapture" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="ADBCapture" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="SmartDigger" project-jdk-type="Python SDK" />
 </project>

@@ -26,7 +26,7 @@ class ElementManager:
         self.recorder = recorder
         self.imageProcessor = ImageProcessor()
 
-    def element_center(self, single_color_screenshot_path, element_id, screenshot_id):
+    def element_center(self,  element_id, screenshot_id):
         """点击指定元素的中心点
         
         参数:
@@ -44,14 +44,6 @@ class ElementManager:
         if result:
             center_x, center_y = result
             # 执行点击操作
-
-            template_dir = os.path.join(os.getenv('TEMPLATE_DIR'), )
-            if not os.path.exists(template_dir):
-                os.makedirs(template_dir)
-
-            self.imageProcessor.copy_image(single_color_screenshot_path,
-                                           os.path.join(template_dir, f"{screenshot_id}.jpeg"))
-            self.recorder.save_template(screenshot_id, center_x, center_y)
             return center_x, center_y
         else:
             raise ValueError(f"未找到 ID 为 {element_id} 的元素")

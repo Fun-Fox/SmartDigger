@@ -41,6 +41,8 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
     - 200: 成功
     - 500: 失败
 
+### 返回示例
+
 ```json
 {
   "msg": "视觉诊断为弹窗，跳过的坐标为：540,1805",
@@ -48,10 +50,15 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 }
 ```
 
+### 部署脚本
+
 ```shell
+# 部署脚本
 nohup sh deploy.sh > logs/run.log 2>&1 &
-# 直接关闭当前终端,再打开一个查看
+# 查看python进程
 ps aux |grep python
+# 停止python进程
+kill -9 pid
 ```
 
 ## 运行流程

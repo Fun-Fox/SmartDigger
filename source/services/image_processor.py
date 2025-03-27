@@ -49,7 +49,7 @@ class ImageProcessor:
         non_clickable_area_image = grayscale_image.copy()
         non_clickable_area_draw = ImageDraw.Draw(non_clickable_area_image)
         single_color = 192  # 灰色
-        self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
+        # self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
 
         # 在灰度图基础上，再进行不可点击区域至灰色
         width, height = non_clickable_area_image.size
@@ -65,7 +65,7 @@ class ImageProcessor:
                 if not is_clickable:
                     non_clickable_area_draw.point((x, y), fill=single_color)
 
-        self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
+        # self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
 
         # 绘制可点击部分的边框和文字
         for bounds, element_id in clickable_elements_bounds_list:
@@ -87,7 +87,7 @@ class ImageProcessor:
             # 在组内随机选择颜色
             color = random.sample(color_group, 1)[0]
 
-            self.logger.info(f"绘制边框和文本，颜色：{color}")
+            # self.logger.info(f"绘制边框和文本，颜色：{color}")
 
             # 绘制边框
             overlay_draw.rectangle([x1 + 5, y1 + 5, x2 - 5, y2 - 5], outline=color, width=5)

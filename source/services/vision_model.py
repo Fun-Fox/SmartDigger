@@ -115,7 +115,7 @@ class VisionModelService:
         raise Exception("analyze_screenshot 方法中发生意外错误")
 
     @staticmethod
-    def _convert_image_to_base64(marked_screenshot_image, quality=50) -> str:
+    def _convert_image_to_base64(marked_screenshot_image, quality=80) -> str:
         """将截图转换为Base64编码，并降低图像质量以减小数据大小。
 
         Args:

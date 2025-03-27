@@ -47,13 +47,15 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
                                                                                                      str, bool, Image, Image]:
     # """捕获并标记元素"""
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    device_name = device_name.replace(':', '_')
+    # 兼容特殊情况
     screenshot_id = f'{device_name}_{timestamp}_{app_package}'
 
     image_processor = ImageProcessor()
 
     # 处理图像
     grayscale_image = image_processor.convert_to_grayscale(screenshot_image)
-    logger.info(f"图像已转换为灰度图像")
+    # logger.info(f"图像已转换为灰度图像")
 
     # clickable_elements = [element for element in xml_root.iter() if element.get("clickable") == "true"]
     clickable_elements_bounds_list = [(elements.get('bounds'), i) for i, elements in enumerate(clickable_elements)
@@ -65,7 +67,7 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
         return screenshot_id, True, None, None
 
     # 绘制元素边框
-    logger.info(f"调用多次？")
+    # logger.info(f"调用多次？")
     marked_screenshot_image, non_clickable_area_image = image_processor.draw_element_borders(
         grayscale_image,  # 直接使用灰度图像
         clickable_elements_bounds_list,

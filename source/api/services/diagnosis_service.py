@@ -50,7 +50,7 @@ def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
         # 1. 先进行模板匹配
         template_matcher = TemplateMatcher()
         is_template_match, template_file = template_matcher.match_known_popups(non_clickable_area_image)
-        logger.info(f'模板匹配结果: {is_template_match}, 模板文件: {template_file}')
+        # logger.info(f'模板匹配结果: {is_template_match}, 模板文件: {template_file}')
     except Exception as e:
         logger.error(f"模板匹配时发生错误: {e}")
         raise e
@@ -127,6 +127,8 @@ def save_images_async(marked_screenshot_image, non_clickable_area_image, directo
     def save():
         # 保存标记后的截图
         recorder = Recorder()
+        # safe_screenshot_id = screenshot_id.replace(':', '_')
+
         save_screenshot(marked_screenshot_image, directory_path, screenshot_id + '_marked_screenshot', format='JPEG')
 
         # 保存模板信息
@@ -143,6 +145,7 @@ def save_images_async(marked_screenshot_image, non_clickable_area_image, directo
 
 def save_screenshot(image, directory_path, screenshot_id, format='JPEG'):
     """保存截图到指定路径"""
+    # 替换设备名称中的非法字符
     screenshot_path = os.path.join(directory_path, f'{screenshot_id}.{format.lower()}')
     logger.info(f"保存截图到: {screenshot_path}")
     try:

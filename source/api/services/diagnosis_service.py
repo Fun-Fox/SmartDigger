@@ -16,8 +16,8 @@ __all__ = ['vision_analysis']
 def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
     """
     执行诊断
-    :param screenshot_path: 截图路径
-    :param xml_path: XML文件路径
+    :param xml_page_struct:
+    :param screenshot_bytes:
     :param device_name: 设备名称
     :return: 诊断结果
     """

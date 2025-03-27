@@ -19,6 +19,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(c
 class TemplateMatcher:
     def __init__(self):
         self.template_dir = os.path.join(project_root, os.getenv('TEMPLATE_DIR'))
+        os.makedirs(self.template_dir, exist_ok=True)
         # 初始化日志记录器
 
     def match_known_popups(self, non_clickable_area_image):
@@ -40,9 +41,8 @@ class TemplateMatcher:
         logger.info("未匹配到任何弹窗模板")
         return False, None
 
-
 # if __name__ == '__main__':
 #     template_matcher = TemplateMatcher()
 #     result = template_matcher.match_known_popups('D:\Code\SmartDigger\source\\test\\test-2.png')
 #     print(result)
-    # print(template_file.rstrip('.png'))
+# print(template_file.rstrip('.png'))

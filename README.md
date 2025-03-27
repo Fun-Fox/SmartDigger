@@ -11,7 +11,7 @@ SmartDigger 是一个基于 Appium 及视觉大模型的智能移动应用测试
 - **设备信息获取**：自动识别连接的 Android 设备，获取设备名称、分辨率等信息
 - **界面元素分析**：实时截取应用界面，智能分析可点击元素及其边界信息
 - **弹窗智能处理**：基于视觉大模型识别各类弹窗，自动执行关闭操作
-- **数据报告生成**：自动记录元素边界信息，生成详细的 Markdown 格式报告
+- **数据报告生成**：自动记录元素边界信息
 - **异常处理机制**：内置完善的错误处理机制，确保检测流程的稳定性
 
 ## 技术架构
@@ -21,7 +21,7 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 1. **设备管理模块**：通过 ADB 获取设备信息，包括设备名称、分辨率、当前应用包名等。
 2. **界面分析模块**：基于 Appium 实现界面截图、元素边界提取及标注功能。
 3. **弹窗处理模块**：结合视觉大模型和模板匹配技术，智能识别并处理弹窗。
-4. **数据记录模块**：使用 SQLite 存储元素边界信息，并生成 Markdown 格式报告。
+4. **数据记录模块**：使用 SQLite 存储元素边界信息
 5. **API 服务模块**：提供 RESTful API 接口，支持远程调用诊断功能。
 
 ## API 接口说明
@@ -44,7 +44,7 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 ```json
 {
   "msg": "视觉诊断为弹窗，跳过的坐标为：540,1805",
-  "script": "import subprocess\n        subprocess.run(\n            ['adb', '-s', your_device_name, 'shell', 'input', 'tap', str(540), str(1805)],\n            check=True\n        )"
+  "script": "import subprocess;subprocess.run( ['adb', '-s', 172.25.13.8:5555, 'shell', 'input', 'tap', str(540), str(1805)],check=True)"
 }
 ```
 
@@ -53,7 +53,6 @@ nohup sh deploy.sh > logs/run.log 2>&1 &
 # 直接关闭当前终端,再打开一个查看
 ps aux |grep python
 ```
-
 
 ## 运行流程
 
@@ -78,6 +77,26 @@ ps aux |grep python
 3. 视觉大模型 API 需要有效的 API Key，请确保环境变量配置正确。
 4. 截图目录和数据库路径可根据实际需求在 `.env` 文件中配置。
 
+## 性能
+
+### 初次弹窗：响应时间 3s
+
+![img.png](doc/test-1.png)
+
+### 模版库匹配：响应时间 1s
+
+![img.png](doc/test-2.png)
+
+## 视觉模型花费
+
+#### 单次 API 调用模型：toal_tokens:2080
+
+![img.png](doc/test-3.png)
+
+#### 截至目前调用 209719 Token(s) 话费：0.2076 元，估计调用快 100 次 api
+
+![img.png](doc/test-4.png)
+
 ## 运行效果
 
 ### Case 1
@@ -86,7 +105,6 @@ ps aux |grep python
 
 - 截图标注
   ![img.png](doc/case-1-img.png)
-
 - 运行日志
   ![img.png](doc/case-1-log.png)
 
@@ -105,3 +123,5 @@ ps aux |grep python
 ![img.png](doc/template-1.jpeg)
 
 ![img.png](doc/template-2.png)
+
+

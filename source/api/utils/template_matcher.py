@@ -1,5 +1,8 @@
 import cv2
 import os
+
+import numpy as np
+
 from source.utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -21,14 +24,14 @@ class TemplateMatcher:
     def match_known_popups(self, non_clickable_area_image):
         """匹配已知弹窗模板"""
 
-
+        # non_clickable_area_image.save( os.path.join(project_root, os.getenv('TEMPLATE_DIR'), 'non_clickable_area_image.png'))
+        non_clickable_area_image = np.array(non_clickable_area_image)
         for template_file_item in os.listdir(self.template_dir):
             template_path = os.path.join(self.template_dir, template_file_item)
             template = cv2.imread(template_path, 0)
             if template is None:
                 logger.error(f"无法读取模板文件: {template_path}")
                 continue
-
             ret = cv2.matchTemplate(non_clickable_area_image, template, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(ret)
             if max_val > 0.8:  # 匹配阈值

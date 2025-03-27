@@ -4,9 +4,9 @@ import time
 from PIL import ImageDraw, ImageFont, Image  # 添加 ImageFont 导入
 import re
 import random
-from source.services.recorder import Recorder
-import shutil
+
 from source.utils.log_config import setup_logger
+from source.services.recorder import Recorder
 
 
 class ImageProcessor:
@@ -27,8 +27,8 @@ class ImageProcessor:
         """
         return image.convert('L')
 
-    def draw_element_borders(self, marked_screenshot_image, clickable_elements_bounds_list, screenshot_id) -> tuple[
-        Image.Image, Image.Image]:
+    def draw_element_borders(self, grayscale_image, clickable_elements_bounds_list, screenshot_id) -> tuple[
+        ImageDraw, ImageDraw]:
         """在图片上绘制元素的边框，并将不可点击部分改为单一色调（无框）
 
         参数:
@@ -41,15 +41,18 @@ class ImageProcessor:
             marked_screenshot_path: 绘制边框后的图像路径
             single_color_screenshot_path: 单一色调后的图像路径
         """
-        draw = ImageDraw.Draw(marked_screenshot_image)
+        # 创建一个彩色图层（RGB 模式）
+        overlay = Image.new('RGBA', grayscale_image.size, (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
 
-        # 创建单一色调的图像副本
-        non_clickable_area_image = marked_screenshot_image.copy()
-        single_color_draw = ImageDraw.Draw(non_clickable_area_image)
-        single_color = (192, 192, 192)  # 灰色
+        # 在灰度图基础上，再进行不可点击区域至灰色
+        non_clickable_area_image = grayscale_image.copy()
+        non_clickable_area_draw = ImageDraw.Draw(non_clickable_area_image)
+        single_color = 192  # 灰色
+        self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
 
-        # 将不可点击部分改为单一色调
-        width, height = marked_screenshot_image.size
+        # 在灰度图基础上，再进行不可点击区域至灰色
+        width, height = non_clickable_area_image.size
         for x in range(width):
             for y in range(height):
                 is_clickable = False
@@ -60,7 +63,9 @@ class ImageProcessor:
                         is_clickable = True
                         break
                 if not is_clickable:
-                    single_color_draw.point((x, y), fill=single_color)
+                    non_clickable_area_draw.point((x, y), fill=single_color)
+
+        self.logger.info(f"将不可点击部分改为单一色调，颜色：{single_color}")
 
         # 绘制可点击部分的边框和文字
         for bounds, element_id in clickable_elements_bounds_list:
@@ -85,7 +90,7 @@ class ImageProcessor:
             self.logger.info(f"绘制边框和文本，颜色：{color}")
 
             # 绘制边框
-            draw.rectangle([x1 + 5, y1 + 5, x2 - 5, y2 - 5], outline=color, width=5)
+            overlay_draw.rectangle([x1 + 5, y1 + 5, x2 - 5, y2 - 5], outline=color, width=5)
 
             # 绘制文本
             font_path = "fonts/Roboto_SemiCondensed-Black.ttf"
@@ -93,9 +98,17 @@ class ImageProcessor:
             text = f"{element_id + 1}"
             text_x = x2 - font.getmask(text).size[0] - 30
             text_y = y1 + 10
-            draw.text((text_x + 10, text_y), text, fill=color, font=font)
+            overlay_draw.text((text_x + 10, text_y), text, fill=color, font=font)
 
-        return marked_screenshot_image, non_clickable_area_image
+        marked_screenshot = grayscale_image.convert('RGBA')
+        marked_screenshot.alpha_composite(overlay)
+        # try:
+        #     marked_screenshot.save("D:\\Code\\SmartDigger\\tmp\\temp.png")
+        # except Exception as e:
+        #     self.logger.error(f"无法将截图转换为Base64编码: {str(e)}")
+        #     raise e
+        # 可以直接返回原始的grayscale_image和non_clickable_area_image，因为ImageDraw的操作是直接在Image对象上进行的。
+        return marked_screenshot, non_clickable_area_image
         # return marked_screenshot_path, single_color_screenshot_path
 
     # # 保存绘制边框后的图像
@@ -117,8 +130,6 @@ class ImageProcessor:
     # self.imageProcessor.copy_image(single_color_screenshot_path,
     #                                os.path.join(template_dir, f"{screenshot_id}.jpeg"))
     # self.recorder.save_template(screenshot_id, center_x, center_y)
-
-
 
 
 if __name__ == '__main__':

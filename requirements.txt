@@ -1,8 +1,9 @@
 appium-python-client==4.5.1
-Pillow
-python-dotenv
-requests
-lxml
-opencv-python
-flask
-schedule
+Pillow~=11.1.0
+python-dotenv~=0.21.0
+requests~=2.32.3
+lxml~=5.3.0
+opencv-python~=4.11.0.86
+flask~=3.1.0
+schedule~=1.2.2
+numpy~=2.0.1

@@ -1,121 +1,169 @@
 import json
 import os
+from io import BytesIO
+
 import requests
 from base64 import b64encode
+
+from PIL import Image
 from dotenv import load_dotenv
 from typing import Dict, Any
 from source.utils.log_config import setup_logger
-
 
 load_dotenv()
 
 
 class VisionModelService:
-    """A service for interacting with the vision model API to analyze screenshots."""
+    """用于与视觉模型API交互，分析截图的工具类。"""
 
-    # Constants
-    MAX_RETRIES = 3
-    RETRY_DELAY = 1  # in seconds
+    # 常量
+    MAX_RETRIES = 1
+    RETRY_DELAY = 1  # 重试延迟，单位：秒
     DEFAULT_MODEL = "deepseek-ai/deepseek-vl2"
 
     def __init__(self):
-        """Initialize the vision model service with API configurations."""
+        """初始化视觉模型服务，配置API信息。"""
         self.api_url = self._get_api_url()
         self.api_key = self._get_api_key()
         self.logger = setup_logger(__name__)
 
     @staticmethod
     def _get_api_url() -> str:
-        """Get the vision model API URL from environment variables."""
+        """从环境变量中获取视觉模型API的URL。"""
         url = os.getenv('VISION_MODEL_API_URL')
         if not url:
-            raise ValueError("Vision model API URL is not configured")
+            raise ValueError("未配置视觉模型API的URL")
         return url
 
     @staticmethod
     def _get_api_key() -> str:
-        """Get the vision model API key from environment variables."""
+        """从环境变量中获取视觉模型API的密钥。"""
         key = os.getenv('VISION_MODEL_API_KEY')
         if not key:
-            raise ValueError("Vision model API key is not configured")
+            raise ValueError("未配置视觉模型API的密钥")
         return key
 
     def _handle_response_errors(self, response_json: Dict) -> None:
-        """Handle errors returned by the vision model API.
-        
+        """处理视觉模型API返回的错误。
+
         Args:
-            response_json: The JSON response from the API.
-            
+            response_json: API返回的JSON响应。
+
         Raises:
-            Exception: If the response contains an error code or message.
+            Exception: 如果响应中包含错误码或错误信息。
         """
         if 'code' in response_json:
             error_code = response_json['code']
-            error_message = response_json.get('message', 'Unknown error')
+            error_message = response_json.get('message', '未知错误')
             if error_code == 20012:
-                self.logger.error(f"Vision model exception: {error_message}")
+                self.logger.error(f"视觉模型异常: {error_message}")
                 raise Exception(f"视觉模型返回异常: {error_message}")
             elif error_code == 50505:
-                self.logger.error(f"Vision model service overload: {error_message}")
+                self.logger.error(f"视觉模型服务过载: {error_message}")
                 raise Exception(f"视觉模型服务过载: {error_message}")
 
         if 'message' in response_json and "rate limiting" in response_json['message']:
             error_message = response_json['message']
-            self.logger.error(f"Rate limit exceeded: {error_message}")
+            self.logger.error(f"达到速率限制: {error_message}")
             raise Exception(f"请求被拒绝，达到速率限制: {error_message}")
 
     def analyze_screenshot(self, marked_screenshot_image):
-        """Analyze a screenshot using the vision model API.
-        
+        """使用视觉模型API分析截图。
+
         Args:
-            marked_screenshot_image: Path to the screenshot image file.
-            
+            marked_screenshot_image: 截图文件路径或PIL.Image对象。
+
         Returns:
-            A dictionary containing the analysis results.
-            
+            包含分析结果的字典。
+
         Raises:
-            Exception: If the analysis fails or the response cannot be parsed.
+            Exception: 如果分析失败或无法解析响应。
         """
         for attempt in range(self.MAX_RETRIES):
             try:
-
-                marked_screenshot_base64 = b64encode(marked_screenshot_image).decode('utf-8')
+                # 将截图转换为Base64编码
+                marked_screenshot_base64 = self._convert_image_to_base64(marked_screenshot_image)
+                # raise Exception("analyze_screenshot 方法中发生意外错误")
 
                 headers = {
                     'Content-Type': 'application/json',
                     'Authorization': f'Bearer {self.api_key}'
                 }
-
+                # 构建请求负载
                 payload = self._build_payload(marked_screenshot_base64)
+                # 打印格式化请求内容
+                # self.logger.info("发送请求到视觉模型API:")
+                # self.logger.info(f"URL: {self.api_url}")
+                # self.logger.info(f"Headers: {json.dumps(headers, indent=2)}")
+                # self.logger.info(f"Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}")
                 response = requests.post(self.api_url, json=payload, headers=headers)
+                # 打印格式化响应内容
+                self.logger.info(f"收到视觉模型API响应:{json.dumps(response.json(), indent=2, ensure_ascii=False)}")
+                # self.logger.info(f"Status Code: {response.status_code}")
+                # 处理响应
                 if response.status_code == 200:
                     return self._process_response(response.json())
 
-                self.logger.warning(f"Attempt {attempt + 1} failed with status code {response.status_code}")
+                self.logger.warning(f"第 {attempt + 1} 次尝试失败，状态码: {response.status_code}")
 
             except Exception as e:
-                self.logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
+                self.logger.warning(f"第 {attempt + 1} 次尝试失败: {str(e)}")
                 if attempt == self.MAX_RETRIES - 1:
-                    self.logger.error("All attempts failed")
-                    raise Exception(f"Failed to analyze screenshot after {self.MAX_RETRIES} attempts: {str(e)}")
+                    self.logger.error("所有尝试均失败")
+                    raise Exception(f"分析截图失败，尝试 {self.MAX_RETRIES} 次后仍未成功: {str(e)}")
 
-        raise Exception("Unexpected error in analyze_screenshot")
+        raise Exception("analyze_screenshot 方法中发生意外错误")
+
+    @staticmethod
+    def _convert_image_to_base64(marked_screenshot_image, quality=50) -> str:
+        """将截图转换为Base64编码，并降低图像质量以减小数据大小。
+
+        Args:
+            marked_screenshot_image: 截图文件路径或PIL.Image对象。
+            quality: 图像质量，范围是 1-100，默认值为 50。
+
+        Returns:
+            Base64编码的字符串。
+        """
+
+        # 创建字节流对象
+        byte_stream = BytesIO()
+
+        # 将图像保存到字节流，降低质量
+        marked_screenshot_image.save(byte_stream, format='JPEG', quality=quality)
+
+        # 保存字节流为图片文件，用于验证效果
+        # save_path = "D:\\Code\\SmartDigger\\template\\temp_saved.jpg"
+        # with open(save_path, "wb") as f:
+        #     f.write(byte_stream.getvalue())
+        # self.logger.info(f"图像已保存到: {save_path}")
+
+        # 获取字节数据
+        image_bytes = byte_stream.getvalue()
+
+        # 将字节数据编码为 Base64
+        base64_bytes = b64encode(image_bytes)
+
+        # 解码为 UTF-8 字符串
+        base64_str = base64_bytes.decode('utf-8')
+
+        return base64_str
 
     def _build_payload(self, marked_screenshot_base64) -> Dict:
-        """Build the API request payload."""
+        """构建API请求负载。
+
+        Args:
+            marked_screenshot_base64: Base64编码的截图。
+
+        Returns:
+            请求负载的字典。
+        """
         return {
             "model": self.DEFAULT_MODEL,
             "messages": [
                 {
                     "role": "user",
                     "content": [
-                        # {
-                        #     "type": "image_url",
-                        #     "image_url": {
-                        #         "url": f"data:image/jpeg;base64,{screenshot_base64}",
-                        #         "detail": "low"
-                        #     }
-                        # },
                         {
                             "type": "image_url",
                             "image_url": {
@@ -126,7 +174,6 @@ class VisionModelService:
                             "type": "text",
                             "text": self._build_analysis_prompt()
                         }
-
                     ]
                 }
             ],
@@ -135,14 +182,18 @@ class VisionModelService:
 
     @staticmethod
     def _build_analysis_prompt() -> str:
-        """Build the analysis prompt for the vision model."""
+        """构建视觉模型的分析提示。
+
+        Returns:
+            分析提示的字符串。
+        """
         return '''
         请以严格JSON格式返回以下分析结果，不要包含任何额外文本：
         {
             "popup_exists": true/false,
             "popup_cancel_button": 数字标记（若无则填null）
         }
-    
+
         分析要求：
         1. 判断手机页面是否存在弹框（popup_exists）。弹框通常是一个覆盖在主界面上的小窗口或对话框。
         2. 若存在弹窗，找到关闭/忽略/取消操作按钮的数字标记。这些按钮通常用于关闭弹框。
@@ -162,10 +213,20 @@ class VisionModelService:
         '''
 
     def _process_response(self, response_json: Dict) -> Dict:
-        """Process the API response and extract the analysis results."""
+        """处理API响应并提取分析结果。
+
+        Args:
+            response_json: API返回的JSON响应。
+
+        Returns:
+            分析结果的字典。
+
+        Raises:
+            Exception: 如果无法解析响应。
+        """
         self._handle_response_errors(response_json)
 
-        # 新增：直接解析顶层JSON结构
+        # 解析顶层JSON结构
         if 'choices' in response_json and response_json['choices']:
             choice = response_json['choices'][0]
             content = choice.get('message', {}).get('content', {})
@@ -173,7 +234,7 @@ class VisionModelService:
                 try:
                     return json.loads(content)  # 假设响应内容直接是JSON字符串
                 except json.JSONDecodeError as e:
-                    raise Exception(f"Invalid JSON format: {str(e)}")
+                    raise Exception(f"无效的JSON格式: {str(e)}")
             else:
-                raise Exception("Expected JSON content not found in response")
-        raise Exception("Failed to parse the response from the vision model")
+                raise Exception("未在响应中找到预期的JSON内容")
+        raise Exception("无法解析视觉模型的响应")

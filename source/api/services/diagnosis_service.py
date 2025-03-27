@@ -1,6 +1,4 @@
 import os
-import xml.etree.ElementTree as ET
-
 from lxml import etree
 
 from source import capture_and_mark_elements, diagnose_and_handle
@@ -10,7 +8,6 @@ from source.services.recorder import Recorder
 from source.utils.log_config import setup_logger
 import io
 from PIL import Image
-import xml.etree.ElementTree as ET
 
 logger = setup_logger(__name__)
 __all__ = ['vision_analysis']
@@ -37,7 +34,9 @@ def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
     screenshot_image = Image.open(io.BytesIO(screenshot_bytes))
 
     try:
-        xml_root = etree.fromstring(xml_page_struct)
+        # 将XML字符串转换为字节类型
+        xml_page_bytes = xml_page_struct.encode('utf-8')
+        xml_root = etree.fromstring(xml_page_bytes)
         clickable_elements = xml_root.xpath(".//*[@clickable='true']")
     except Exception as e:
         logger.error(f"XML 格式错误: {str(e)}")
@@ -86,7 +85,11 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(c
 def popup_analysis(recorder, is_more_clickable_elements, marked_screenshot_image, non_clickable_area_image,
                    screenshot_id):
     try:
-
+        if not isinstance(marked_screenshot_image, Image.Image):
+            raise ValueError("输入必须是 PIL.Image.Image 对象")
+            # 如果图像是 RGBA 模式，转换为 RGB 模式
+        if marked_screenshot_image.mode == 'RGBA':
+            marked_screenshot_image = marked_screenshot_image.convert('RGB')
         center_x, center_y = None, None
         if not is_more_clickable_elements:
             # 进行弹窗识别
@@ -100,38 +103,36 @@ def popup_analysis(recorder, is_more_clickable_elements, marked_screenshot_image
         # 保存图像
         device_name = screenshot_id.split('_')[0]
         directory_path = os.path.join(project_root, os.getenv('SCREENSHOT_DIR'), device_name)
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path)
         template_dir = os.path.join(project_root, os.getenv('TEMPLATE_DIR'))
-        if not os.path.exists(template_dir):
-            os.makedirs(template_dir)
 
         # 异步保存图像
         save_images_async(marked_screenshot_image, non_clickable_area_image, directory_path, template_dir,
-                          screenshot_id, recorder, center_x, center_y)
+                          screenshot_id, center_x, center_y)
         return center_x, center_y
     except Exception as e:
         logger.error(f"运行视觉模型定位时发生错误: {e}")
         recorder.close()
         raise e
+    finally:
+        recorder.close()
 
 
 import threading
 
 
 def save_images_async(marked_screenshot_image, non_clickable_area_image, directory_path, template_dir, screenshot_id,
-                      recorder, center_x, center_y):
+                      center_x, center_y):
     """异步保存图像的线程函数"""
 
     def save():
         # 保存标记后的截图
+        recorder = Recorder()
         save_screenshot(marked_screenshot_image, directory_path, screenshot_id + '_marked_screenshot', format='JPEG')
 
         # 保存模板信息
         if center_x is not None and center_y is not None:
             # 保存不可点击区域的截图
-            template_path = os.path.join(template_dir, f"{screenshot_id}.jpeg")
-            save_screenshot(non_clickable_area_image, template_path, screenshot_id, format='JPEG')
+            save_screenshot(non_clickable_area_image, template_dir, screenshot_id, format='JPEG')
             recorder.save_template(screenshot_id, center_x, center_y)
         recorder.close()
 
@@ -143,5 +144,13 @@ def save_images_async(marked_screenshot_image, non_clickable_area_image, directo
 def save_screenshot(image, directory_path, screenshot_id, format='JPEG'):
     """保存截图到指定路径"""
     screenshot_path = os.path.join(directory_path, f'{screenshot_id}.{format.lower()}')
-    image.save(directory_path, format=format, quality=85)
+    logger.info(f"保存截图到: {screenshot_path}")
+    try:
+        # 确保目录存在
+        os.makedirs(directory_path, exist_ok=True)
+        # 保存图像
+        image.save(screenshot_path, format=format, quality=85)
+    except Exception as e:
+        logger.error(f"保存截图失败: {str(e)}")
+        raise e
     return screenshot_path

@@ -50,6 +50,6 @@ if __name__ == '__main__':
     # 替换为实际的图片路径、XML文件路径和设备名称
     image_path = "test-3.jpeg"
     xml_path = "hierarchy-3.xml"
-    device_name = "your_device_name"
+    device_name = "YourDeviceName"
 
     test_diagnose_api(image_path, xml_path, device_name)

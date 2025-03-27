@@ -65,6 +65,12 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         # 进行元素定位
         screenshot_id, is_more_clickable_elements, marked_screenshot_image, non_clickable_area_image = capture_and_mark_elements(
             screenshot_image, device_name, app_package, clickable_elements)
+
+        if not isinstance(marked_screenshot_image, Image.Image):
+            raise ValueError("输入必须是 PIL.Image.Image 对象")
+            # 如果图像是 RGBA 模式，转换为 RGB 模式
+        if marked_screenshot_image.mode == 'RGBA':
+            marked_screenshot_image = marked_screenshot_image.convert('RGB')
         # 进行弹窗识别
         if not is_more_clickable_elements:
             # 进行弹窗识别

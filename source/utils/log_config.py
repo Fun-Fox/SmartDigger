@@ -14,13 +14,42 @@ class TraceIdFilter(logging.Filter):
     def filter(self, record):
         if not hasattr(record, 'trace_id'):
             try:
+                from flask import g
                 record.trace_id = g.trace_id
-            except Exception:
-                record.trace_id = str(uuid.uuid4())
+            except (RuntimeError, AttributeError):
+                # 如果没有 Flask 上下文，使用默认的 trace_id
+                record.trace_id = "子线程：" + str(uuid.uuid4())
         return True
 
 
-def setup_logger(name, log_dir="logs", log_file="app.log", level=logging.INFO, enable_console=True):
+def _create_file_handler(log_file_path, log_format):
+    """
+    创建文件日志处理器
+    """
+    file_handler = TimedRotatingFileHandler(
+        log_file_path,
+        when="midnight",
+        interval=1,
+        backupCount=3,
+        encoding="utf-8",
+        delay=True
+    )
+    formatter = logging.Formatter(log_format)
+    file_handler.setFormatter(formatter)
+    file_handler.addFilter(TraceIdFilter())
+    return file_handler
+
+
+def _create_console_handler(log_format):
+    """
+    创建终端日志处理器
+    """
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter(log_format))
+    return console_handler
+
+
+def setup_logger(name, log_dir="logs", log_file="app.log", level=logging.INFO, enable_console=True, log_format=None):
     """
     配置日志记录器
     :param name: 日志记录器名称
@@ -28,6 +57,7 @@ def setup_logger(name, log_dir="logs", log_file="app.log", level=logging.INFO, e
     :param log_file: 日志文件名
     :param level: 日志级别
     :param enable_console: 是否启用终端输出日志
+    :param log_format: 自定义日志格式
     :return: 配置好的日志记录器
     """
     # 确保日志目录存在
@@ -41,30 +71,21 @@ def setup_logger(name, log_dir="logs", log_file="app.log", level=logging.INFO, e
     # 防止日志传播到父记录器
     logger.propagate = False
 
-    # 配置日志格式，添加 trace_id
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(trace_id)s - %(message)s')
+    # 如果日志记录器已配置，直接返回
+    if logger.handlers:
+        return logger
 
-    # 创建 TimedRotatingFileHandler，按天轮转日志文件
-    file_handler = TimedRotatingFileHandler(
-        log_file_path,
-        when="midnight",
-        interval=1,
-        backupCount=3,
-        encoding="utf-8",
-    )
-    file_handler.setFormatter(formatter)
+    # 配置日志格式，添加行号字段
+    if log_format is None:
+        log_format = '%(asctime)s - %(name)s - %(levelname)s - %(trace_id)s - %(lineno)d - %(message)s'
 
-    # 添加 trace_id 过滤器
-    trace_id_filter = TraceIdFilter()
-    file_handler.addFilter(trace_id_filter)
-
-    # 将处理器添加到日志记录器
+    # 添加文件处理器
+    file_handler = _create_file_handler(log_file_path, log_format)
     logger.addHandler(file_handler)
 
-    # 如果启用终端输出，添加 StreamHandler
+    # 如果启用终端输出，添加终端处理器
     if enable_console:
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
+        console_handler = _create_console_handler(log_format)
         logger.addHandler(console_handler)
 
     return logger

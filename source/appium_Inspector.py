@@ -42,9 +42,9 @@ class AppiumInspector:
 
 
 def capture_and_mark_elements(screenshot_image, device_name, app_package, clickable_elements) -> tuple[
-                                                                                           str, bool, None, None] | \
-                                                                                       tuple[
-                                                                                           str, bool, Image, Image]:
+                                                                                                     str, bool, None, None] | \
+                                                                                                 tuple[
+                                                                                                     str, bool, Image, Image]:
     # """捕获并标记元素"""
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     screenshot_id = f'{device_name}_{timestamp}_{app_package}'
@@ -53,7 +53,7 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
 
     # 处理图像
     grayscale_image = image_processor.convert_to_grayscale(screenshot_image)
-
+    logger.info(f"图像已转换为灰度图像")
 
     # clickable_elements = [element for element in xml_root.iter() if element.get("clickable") == "true"]
     clickable_elements_bounds_list = [(elements.get('bounds'), i) for i, elements in enumerate(clickable_elements)
@@ -65,6 +65,7 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
         return screenshot_id, True, None, None
 
     # 绘制元素边框
+    logger.info(f"调用多次？")
     marked_screenshot_image, non_clickable_area_image = image_processor.draw_element_borders(
         grayscale_image,  # 直接使用灰度图像
         clickable_elements_bounds_list,
@@ -78,6 +79,7 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
 def diagnose_and_handle(marked_screenshot_image, ):
     try:
         vision_model_service = VisionModelService()
+
         analysis_result = vision_model_service.analyze_screenshot(
             marked_screenshot_image)
         logger.info(f'视觉分析结果:{analysis_result}')
@@ -94,3 +96,4 @@ def diagnose_and_handle(marked_screenshot_image, ):
             return None
     except Exception as e:
         logger.error(f"诊断过程中发生错误: {e}")
+        raise e

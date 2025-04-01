@@ -95,3 +95,72 @@ class AdbHelper:
         except Exception as e:
             logger.error(f"获取应用包名失败: {str(e)}")
             raise
+
+    @staticmethod
+    def get_screenshot_base64(device_name):
+        """
+        获取设备屏幕截图并以 base64 格式返回
+        :param device_name: 设备名称
+        :return: 屏幕截图的 base64 字符串
+        """
+        try:
+            # 使用 adb shell screencap 命令获取屏幕截图
+            result = subprocess.run(
+                ['adb', '-s', device_name, 'shell', 'screencap', '-p'],
+                stdout=subprocess.PIPE, check=True
+            )
+            # 将截图数据转换为 base64 编码
+            import base64
+            screenshot_base64 = base64.b64encode(result.stdout).decode('utf-8')
+            logger.info(f"成功获取设备 {device_name} 的屏幕截图")
+            return screenshot_base64
+        except subprocess.CalledProcessError as e:
+            logger.error(f"获取设备 {device_name} 的屏幕截图失败: {str(e)}")
+            raise
+
+    @staticmethod
+    def get_screen_xml(device_name):
+        """
+        获取设备当前屏幕的 XML 布局
+        :param device_name: 设备名称
+        :return: 屏幕的 XML 布局字符串
+        """
+        try:
+            # 使用 adb shell uiautomator dump 命令获取屏幕 XML 布局
+            subprocess.run(
+                ['adb', '-s', device_name, 'shell', 'uiautomator', 'dump', '/sdcard/ui_tree.xml'],
+                check=True
+            )
+            # 将 XML 文件从设备拉取到本地
+            subprocess.run(
+                ['adb', '-s', device_name, 'pull', '/sdcard/ui_tree.xml', './ui_tree.xml'],
+                check=True
+            )
+            # 读取并返回 XML 内容
+            with open('./ui_tree.xml', 'r', encoding='utf-8') as file:
+                xml_content = file.read()
+            logger.info(f"成功获取设备 {device_name} 的屏幕 XML 布局")
+            return xml_content
+        except subprocess.CalledProcessError as e:
+            logger.error(f"获取设备 {device_name} 的屏幕 XML 布局失败: {str(e)}")
+            raise
+
+
+if __name__ == "__main__":
+    # 测试 get_device_name() 函数
+    device_name = AdbHelper.get_device_name()
+    print(f"设备名称: {device_name}")
+
+    # 测试 get_device_resolution() 函数
+    width, height = AdbHelper.get_device_resolution()
+    print(f"设备分辨率: {width}x{height}")
+
+    # 测试 get_current_app_activity() 函数
+    activity = AdbHelper.get_current_app_activity()
+    print(f"当前应用活动: {activity}")
+
+    screenshot_base64 = AdbHelper.get_screenshot_base64(device_name)
+    print(f"屏幕截图的 base64: {screenshot_base64}")
+
+    xml_content = AdbHelper.get_screen_xml(device_name)
+    print(f"屏幕 XML 布局: {xml_content}")

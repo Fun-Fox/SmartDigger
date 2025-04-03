@@ -21,11 +21,13 @@ class VisionModelService:
     RETRY_DELAY = 1  # 重试延迟，单位：秒
     DEFAULT_MODEL = "deepseek-ai/deepseek-vl2"
 
-    def __init__(self):
+    def __init__(self, screen_resolution=""):
         """初始化视觉模型服务，配置API信息。"""
+
         self.api_url = self._get_api_url()
         self.api_key = self._get_api_key()
         self.logger = setup_logger(__name__)
+        self.screen_resolution = screen_resolution
 
     @staticmethod
     def _get_api_url() -> str:
@@ -82,7 +84,7 @@ class VisionModelService:
         for attempt in range(self.MAX_RETRIES):
             try:
                 # 将截图转换为Base64编码
-                marked_screenshot_base64 = self._convert_image_to_base64(marked_screenshot_image)
+                marked_screenshot_base64 = self.convert_image_to_base64(marked_screenshot_image)
                 # raise Exception("analyze_screenshot 方法中发生意外错误")
 
                 headers = {
@@ -115,7 +117,7 @@ class VisionModelService:
         raise Exception("analyze_screenshot 方法中发生意外错误")
 
     @staticmethod
-    def _convert_image_to_base64(marked_screenshot_image, quality=80) -> str:
+    def convert_image_to_base64(marked_screenshot_image, quality=80) -> str:
         """将截图转换为Base64编码，并降低图像质量以减小数据大小。
 
         Args:
@@ -172,7 +174,8 @@ class VisionModelService:
                         },
                         {
                             "type": "text",
-                            "text": self._build_analysis_prompt()
+                            "text": self._build_analysis_prompt() if self.screen_resolution == '' else self._build_analysis_prompt_co(
+                                self.screen_resolution)
                         }
                     ]
                 }
@@ -209,6 +212,47 @@ class VisionModelService:
           {
               "popup_exists": false,
               "popup_cancel_button": null
+          }
+        '''
+
+    @staticmethod
+    def _build_analysis_prompt_co(screen_resolution) -> str:
+        """构建视觉模型的分析提示。
+
+        Returns:
+            分析提示的字符串。
+        """
+        return f'''
+        请以严格JSON格式返回以下分析结果，不要包含任何额外文本：
+        {
+        "popup_exists": true/false,
+            "popup_cancel_button": 数字标记（若无则填null）,
+            "button_coordinates": {
+        "x": 按钮中心的x坐标,
+                "y": 按钮中心的y坐标
+            }
+        }
+
+        分析要求：
+        1. 判断手机屏幕分辨率为{screen_resolution}的手机页面是否存在弹框（popup_exists）。弹框通常是一个覆盖在主界面上的小窗口或对话框。
+        2. 若存在弹窗，找到关闭/忽略/取消操作按钮的中心坐标。这些按钮通常用于关闭弹框。
+        3. 请仔细区分弹框和主界面元素，确保不会将主界面误判为弹框。
+        4. 如果存在按钮，返回按钮中心的手机屏幕坐标（x, y）。
+
+        示例：
+        - 如果页面中有一个覆盖在主界面上的小窗口，且该窗口有一个“取消”按钮，按钮中心的坐标为 (100, 200)，则返回：
+          {
+        "popup_exists": true,
+              "button_coordinates": {
+        "x": 100,
+                  "y": 200
+              }
+          }
+        - 如果页面中没有弹框，则返回：
+          {
+        "popup_exists": false,
+              "popup_cancel_button": null,
+              "button_coordinates": null
           }
         '''
 

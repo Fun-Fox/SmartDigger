@@ -1,6 +1,6 @@
 import uuid
 from flask import Flask, request, jsonify, g
-from .services import vision_analysis
+from .services import vision_analysis, lvm_analysis
 from dotenv import load_dotenv
 import base64
 from source.utils.log_config import setup_logger
@@ -12,7 +12,9 @@ app = Flask(__name__)
 __all__ = ['app']
 
 # 定义接口的必填参数
-REQUIRED_PARAMS = ['screenshot', 'xml_file', 'devices_name']
+# REQUIRED_PARAMS = ['screenshot', 'xml_file', 'devices_name','resolution']
+REQUIRED_PARAMS = ['screenshot']
+
 
 @app.after_request
 def set_content_type(response):
@@ -20,10 +22,12 @@ def set_content_type(response):
     response.headers['Content-Type'] = 'application/json; charset=utf-8'
     return response
 
+
 @app.before_request
 def before_request():
     """为每个请求生成唯一的 trace_id"""
     g.trace_id = str(uuid.uuid4())
+
 
 @app.route('/api/v1/diagnose', methods=['POST'])
 def diagnose():
@@ -64,9 +68,17 @@ def diagnose():
 
         # 调用诊断服务
         try:
-            center_x, center_y = vision_analysis(
-                screenshot_bytes, data['xml_file'], data['devices_name']
-            )
+            if data['resolution'] != '':
+                center_x, center_y = lvm_analysis(
+                    # todo 将screenshot_bytes 转为灰度图像，并且存储到本地
+                    # todo 分辨率的传输
+                    screenshot_bytes, data['resolution'], data['devices_name']
+                )
+
+            else:
+                center_x, center_y = vision_analysis(
+                    screenshot_bytes, data['xml_file'], data['devices_name']
+                )
             if center_x is None or center_y is None:
                 logger.info("系统诊断为非弹窗，麻烦人工排查")
                 return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500

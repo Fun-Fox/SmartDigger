@@ -78,6 +78,24 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
     return screenshot_id, False, marked_screenshot_image, non_clickable_area_image
 
 
+def diagnose_and_handle_lvm(grayscale_image, screen_resolution):
+    try:
+        vision_model_service = VisionModelService(screen_resolution=screen_resolution)
+        analysis_result = vision_model_service.analyze_screenshot(
+            grayscale_image)
+        if analysis_result.get('button_coordinates', False):
+            button_coordinates = analysis_result.get('button_coordinates')
+            x = button_coordinates.get('x')
+            y = button_coordinates.get('y')
+            logger.info(f"视觉模型自己判断，关闭弹窗的按钮中心坐标为: x={x}, y={y}")
+            return x, y
+        else:
+            return None, None
+    except Exception as e:
+        logger.error(f"诊断过程中发生错误: {e}")
+        raise e
+
+
 def diagnose_and_handle(marked_screenshot_image, ):
     try:
         vision_model_service = VisionModelService()

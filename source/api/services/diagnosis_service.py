@@ -1,16 +1,19 @@
+import datetime
 import os
 from lxml import etree
 
 from source import capture_and_mark_elements, diagnose_and_handle
 from source.api.utils.template_matcher import TemplateMatcher
+from source.appium_Inspector import diagnose_and_handle_lvm
 from source.services import ElementManager
+from source.services.image_processor import ImageProcessor
 from source.services.recorder import Recorder
 from source.utils.log_config import setup_logger
 import io
 from PIL import Image
 
 logger = setup_logger(__name__)
-__all__ = ['vision_analysis']
+__all__ = ['vision_analysis', 'lvm_analysis']
 
 
 def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
@@ -80,6 +83,34 @@ def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
 current_file_path = os.path.abspath(__file__)
 # 推导项目根目录（假设项目根目录是当前脚本的祖父目录）
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_path))))
+
+
+def lvm_analysis(screenshot_bytes, screen_resolution,device_name):
+    screenshot_image = Image.open(io.BytesIO(screenshot_bytes))
+    image_processor = ImageProcessor()
+    grayscale_image = image_processor.convert_to_grayscale(screenshot_image)
+    center_x, center_y = diagnose_and_handle_lvm(grayscale_image, screen_resolution)
+
+    if center_x is not None and center_y is not None:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        device_name = device_name.replace(':', '_')
+        # 兼容特殊情况
+        screenshot_id = f'{device_name}_{timestamp}'
+        directory_path = os.path.join(project_root, os.getenv('SCREENSHOT_DIR'), device_name)
+        save_images_async(grayscale_image, directory_path, screenshot_id)
+        return center_x, center_y
+
+
+def save_images_async(grayscale_image, directory_path, screenshot_id, ):
+    """异步保存图像的线程函数"""
+
+    def save():
+        # 保存灰度图
+        save_screenshot(grayscale_image, directory_path, screenshot_id + '_lvm_grayscale_screenshot', format='JPEG')
+
+    # 启动线程
+    thread = threading.Thread(target=save)
+    thread.start()
 
 
 def popup_analysis(recorder, is_more_clickable_elements, marked_screenshot_image, non_clickable_area_image,

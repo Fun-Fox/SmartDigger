@@ -1,4 +1,6 @@
 import subprocess
+import time
+
 from dotenv import load_dotenv
 from source.utils.log_config import setup_logger
 
@@ -126,21 +128,34 @@ class AdbHelper:
         :return: 屏幕的 XML 布局字符串
         """
         try:
-            # 使用 adb shell uiautomator dump 命令获取屏幕 XML 布局
-            subprocess.run(
-                ['adb', '-s', device_name, 'shell', 'uiautomator', 'dump', '/sdcard/ui_tree.xml'],
-                check=True
-            )
+            start_time = time.time()
+            start_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
+            print(f"开始dump-UI-Tree：{start_time_str}")
+            command = f"adb -s {device_name} shell  uiautomator dump /sdcard/ui_tree.xml"
+            result = subprocess.run(command, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            if result.returncode != 0:
+                logger.error(f"获取设备 {device_name} 的屏幕 XML 布局失败: {result.stderr.decode('utf-8')}")
+                raise Exception(f"获取设备 {device_name} 的屏幕 XML 布局失败: {result.stderr.decode('utf-8')}")
+
+            end_time = time.time()
+            end_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+            print(f"完成dump-UI-Tree：{end_time_str}")
+            elapsed_time = end_time - start_time
+            print(f"耗时：{elapsed_time:.3f} 秒")
             # 将 XML 文件从设备拉取到本地
             subprocess.run(
                 ['adb', '-s', device_name, 'pull', '/sdcard/ui_tree.xml', './ui_tree.xml'],
                 check=True
             )
+
             # 读取并返回 XML 内容
             with open('./ui_tree.xml', 'r', encoding='utf-8') as file:
                 xml_content = file.read()
+
             logger.info(f"成功获取设备 {device_name} 的屏幕 XML 布局")
             return xml_content
+
         except subprocess.CalledProcessError as e:
             logger.error(f"获取设备 {device_name} 的屏幕 XML 布局失败: {str(e)}")
             raise
@@ -158,9 +173,12 @@ if __name__ == "__main__":
     # 测试 get_current_app_activity() 函数
     activity = AdbHelper.get_current_app_activity()
     print(f"当前应用活动: {activity}")
-
-    screenshot_base64 = AdbHelper.get_screenshot_base64(device_name)
-    print(f"屏幕截图的 base64: {screenshot_base64}")
-
+    #
+    # screenshot_base64 = AdbHelper.get_screenshot_base64(device_name)
+    # print(f"屏幕截图的 base64: {screenshot_base64}")
+    #
     xml_content = AdbHelper.get_screen_xml(device_name)
     print(f"屏幕 XML 布局: {xml_content}")
+    # adb -s S2D0219109002374 shell  dumpsys window windows
+    # adb -s S2D0219109002374 shell  dumpsys meminfo
+    # adb -s S2D0219109002374 shell  uiautomator dump /sdcard/ui_tree.xml

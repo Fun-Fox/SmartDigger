@@ -32,8 +32,9 @@ SmartDigger 采用模块化设计，主要包含以下核心模块：
 - **Method**: `POST`
 - **请求参数 (JSON)**:
     - `screenshot`: Base64 编码的手机屏幕截图
-    - `xml_file`: XML层级结构文本
+    - `xml_file`: XML层级结构文本(可选) 这个参数有值则走-方案一
     - `devices_name`: 设备名称
+    - `resolution`: 设备分辨率`(可选) 这个参数有值则走-方案二
 - **返回结果**:
     - `msg`: 诊断结果消息
     - `script`: 生成的 ADB 点击脚本（如果诊断为弹窗）

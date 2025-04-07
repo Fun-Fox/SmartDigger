@@ -20,10 +20,10 @@ class VisionModelService:
     MAX_RETRIES = 1
     RETRY_DELAY = 1  # 重试延迟，单位：秒
     # DEFAULT_MODEL = "deepseek-ai/deepseek-vl2"
-    DEFAULT_MODEL = "Qwen/Qwen2.5-VL-32B-Instruct"
+    # DEFAULT_MODEL = "Qwen/Qwen2.5-VL-32B-Instruct"
 
     # DEFAULT_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct"
-    # DEFAULT_MODEL = "Pro/Qwen/Qwen2.5-VL-7B-Instruct"
+    DEFAULT_MODEL = "Pro/Qwen/Qwen2.5-VL-7B-Instruct"
 
     def __init__(self, screen_resolution=""):
         """初始化视觉模型服务，配置API信息。"""

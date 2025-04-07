@@ -13,6 +13,7 @@ from PIL import Image
 from lxml import etree
 
 from source import AppiumInspector, capture_and_mark_elements, diagnose_and_handle
+from source.api.services import lvm_analysis
 from source.services import ElementManager, click_element_close
 from source.tools import AdbHelper
 from dotenv import load_dotenv
@@ -96,6 +97,21 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         raise
 
 
+def run_appium_inspector_by_lvm(device_name, app_package, app_activity, device_resolution):
+    driver = AppiumInspector(device_name, app_package, app_activity, device_resolution).init_driver()
+
+    # 获取截图
+    screenshot = driver.get_screenshot_as_png()
+
+    center_x, center_y = lvm_analysis(screenshot_bytes=screenshot, screen_resolution=device_resolution,
+                                      device_name=device_name)
+    if center_x is not None and center_y is not None:
+        logger.info(f"坐标为: {center_x},{center_y}")
+        click_element_close(driver, center_x, center_y)
+    else:
+        logger.info(f"没有找到弹窗")
+
+
 def main():
     """主函数，获取设备信息并运行 Appium Inspector"""
     try:
@@ -115,8 +131,8 @@ def main():
             return
 
         # 启动界面分析
-        run_appium_inspector(device_name, app_package, app_activity, device_resolution)
-
+        # run_appium_inspector(device_name, app_package, app_activity, device_resolution)
+        run_appium_inspector_by_lvm(device_name, app_package, app_activity, device_resolution)
     except Exception as e:
         logger.error(f"发生意外错误: {e}")
 

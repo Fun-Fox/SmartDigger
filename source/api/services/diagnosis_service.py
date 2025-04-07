@@ -85,23 +85,26 @@ current_file_path = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_path))))
 
 
-def lvm_analysis(screenshot_bytes, screen_resolution,device_name):
+def lvm_analysis(screenshot_bytes, screen_resolution, device_name):
     screenshot_image = Image.open(io.BytesIO(screenshot_bytes))
     image_processor = ImageProcessor()
     grayscale_image = image_processor.convert_to_grayscale(screenshot_image)
     center_x, center_y = diagnose_and_handle_lvm(grayscale_image, screen_resolution)
+    try:
+        if center_x is not None and center_y is not None:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            device_name = device_name.replace(':', '_')
+            # 兼容特殊情况
+            screenshot_id = f'{device_name}_{timestamp}'
+            directory_path = os.path.join(project_root, os.getenv('SCREENSHOT_DIR'), device_name)
 
-    if center_x is not None and center_y is not None:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        device_name = device_name.replace(':', '_')
-        # 兼容特殊情况
-        screenshot_id = f'{device_name}_{timestamp}'
-        directory_path = os.path.join(project_root, os.getenv('SCREENSHOT_DIR'), device_name)
-        save_images_async(grayscale_image, directory_path, screenshot_id)
-        return center_x, center_y
+            save_images_async_gray(grayscale_image, directory_path, screenshot_id)
+            return center_x, center_y
+    except Exception as e:
+        raise e
 
 
-def save_images_async(grayscale_image, directory_path, screenshot_id, ):
+def save_images_async_gray(grayscale_image, directory_path, screenshot_id, ):
     """异步保存图像的线程函数"""
 
     def save():

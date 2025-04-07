@@ -56,7 +56,8 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         screenshot_image = Image.open(io.BytesIO(screenshot))
 
         try:
-            xml_root = etree.fromstring(xml_page_struct)
+            xml_page_bytes = xml_page_struct.encode('utf-8')
+            xml_root = etree.fromstring(xml_page_bytes)
             clickable_elements = xml_root.xpath(".//*[@clickable='true']")
         except Exception as e:
             logger.error(f"XML 格式错误: {str(e)}")
@@ -66,13 +67,15 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
         screenshot_id, is_more_clickable_elements, marked_screenshot_image, non_clickable_area_image = capture_and_mark_elements(
             screenshot_image, device_name, app_package, clickable_elements)
 
-        if not isinstance(marked_screenshot_image, Image.Image):
-            raise ValueError("输入必须是 PIL.Image.Image 对象")
-            # 如果图像是 RGBA 模式，转换为 RGB 模式
-        if marked_screenshot_image.mode == 'RGBA':
-            marked_screenshot_image = marked_screenshot_image.convert('RGB')
         # 进行弹窗识别
         if not is_more_clickable_elements:
+
+            if not isinstance(marked_screenshot_image, Image.Image):
+                raise ValueError("输入必须是 PIL.Image.Image 对象")
+                # 如果图像是 RGBA 模式，转换为 RGB 模式
+            if marked_screenshot_image.mode == 'RGBA':
+                marked_screenshot_image = marked_screenshot_image.convert('RGB')
+
             # 进行弹窗识别
             popup_id = diagnose_and_handle(marked_screenshot_image)
             logger.info(f"弹窗标识为: {popup_id}")
@@ -81,7 +84,9 @@ def run_appium_inspector(device_name, app_package, app_activity, device_resoluti
                 center_x, center_y = element_manager.element_center(popup_id, screenshot_id)
                 # 点击弹窗
                 logger.info(f"检测到弹窗，弹窗标识为: {popup_id}，正在关闭...")
+
                 click_element_close(driver, center_x, center_y)
+                logger.info(f"坐标为: {center_x},{center_y}")
             logger.info(f"弹窗关闭成功")
             driver.quit()
             recorder.close()

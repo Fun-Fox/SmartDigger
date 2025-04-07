@@ -12,8 +12,8 @@ app = Flask(__name__)
 __all__ = ['app']
 
 # 定义接口的必填参数
-# REQUIRED_PARAMS = ['screenshot', 'xml_file', 'devices_name','resolution']
-REQUIRED_PARAMS = ['screenshot']
+# REQUIRED_PARAMS = ['screenshot', 'xml_file','resolution']
+REQUIRED_PARAMS = ['screenshot', 'devices_name']
 
 
 @app.after_request
@@ -68,17 +68,19 @@ def diagnose():
 
         # 调用诊断服务
         try:
-            if data['resolution'] != '':
+            if 'resolution' in data:
                 center_x, center_y = lvm_analysis(
                     # todo 将screenshot_bytes 转为灰度图像，并且存储到本地
                     # todo 分辨率的传输
                     screenshot_bytes, data['resolution'], data['devices_name']
                 )
 
-            else:
+            elif 'xml_file' in data:
                 center_x, center_y = vision_analysis(
                     screenshot_bytes, data['xml_file'], data['devices_name']
                 )
+            else:
+                raise Exception("xml_file 或者 resolution 其中一个必填")
             if center_x is None or center_y is None:
                 logger.info("系统诊断为非弹窗，麻烦人工排查")
                 return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500

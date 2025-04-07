@@ -19,7 +19,11 @@ class VisionModelService:
     # 常量
     MAX_RETRIES = 1
     RETRY_DELAY = 1  # 重试延迟，单位：秒
-    DEFAULT_MODEL = "deepseek-ai/deepseek-vl2"
+    # DEFAULT_MODEL = "deepseek-ai/deepseek-vl2"
+    DEFAULT_MODEL = "Qwen/Qwen2.5-VL-32B-Instruct"
+
+    # DEFAULT_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct"
+    # DEFAULT_MODEL = "Pro/Qwen/Qwen2.5-VL-7B-Instruct"
 
     def __init__(self, screen_resolution=""):
         """初始化视觉模型服务，配置API信息。"""
@@ -104,6 +108,8 @@ class VisionModelService:
                 # self.logger.info(f"Status Code: {response.status_code}")
                 # 处理响应
                 if response.status_code == 200:
+                    if response.json().get("content") == "":
+                        raise Exception("视觉模型返回空结果")
                     return self._process_response(response.json())
 
                 self.logger.warning(f"第 {attempt + 1} 次尝试失败，状态码: {response.status_code}")
@@ -191,7 +197,7 @@ class VisionModelService:
             分析提示的字符串。
         """
         return '''
-        请以严格JSON格式返回以下分析结果，不要包含任何额外文本：
+        请以严格以JSON格式返回以下分析结果，不要包含任何额外文本：
         {
             "popup_exists": true/false,
             "popup_cancel_button": 数字标记（若无则填null）
@@ -217,43 +223,35 @@ class VisionModelService:
 
     @staticmethod
     def _build_analysis_prompt_co(screen_resolution) -> str:
-        """构建视觉模型的分析提示。
-
-        Returns:
-            分析提示的字符串。
-        """
         return f'''
-        请以严格JSON格式返回以下分析结果，不要包含任何额外文本：
-        {
-        "popup_exists": true/false,
-            "popup_cancel_button": 数字标记（若无则填null）,
-            "button_coordinates": {
-        "x": 按钮中心的x坐标,
+        请以严格JSON格式返回以下分析结果，不要包含任何额外文本，非Markdown文本：
+        {{
+            "popup_exists": true/false,
+            "button_coordinates": {{
+                "x": 按钮中心的x坐标,
                 "y": 按钮中心的y坐标
-            }
-        }
-
+            }}
+        }}
+        当前分辨率为{screen_resolution}，请根据该分辨率进行分析。
         分析要求：
-        1. 判断手机屏幕分辨率为{screen_resolution}的手机页面是否存在弹框（popup_exists）。弹框通常是一个覆盖在主界面上的小窗口或对话框。
-        2. 若存在弹窗，找到关闭/忽略/取消操作按钮的中心坐标。这些按钮通常用于关闭弹框。
-        3. 请仔细区分弹框和主界面元素，确保不会将主界面误判为弹框。
-        4. 如果存在按钮，返回按钮中心的手机屏幕坐标（x, y）。
+        1. 判断手机页面是否存在弹框（popup_exists）。
+        2. 若存在弹框，找到弹窗上的关闭/忽略/取消操作按钮（这些按钮通常用于关闭弹框）
+        3. 请根据手机分辨率，返回按钮中心的手机屏幕x坐标和y坐标。
 
         示例：
-        - 如果页面中有一个覆盖在主界面上的小窗口，且该窗口有一个“取消”按钮，按钮中心的坐标为 (100, 200)，则返回：
-          {
-        "popup_exists": true,
-              "button_coordinates": {
-        "x": 100,
+        - 如果页面中有一个覆盖在主界面上的小窗口，且该窗口有一个“取消”按钮，取消按钮的坐标为（100,200）则返回：
+          {{
+              "popup_exists": true,
+              "button_coordinates": {{
+                  "x": 100,
                   "y": 200
-              }
-          }
+              }}
+          }}
         - 如果页面中没有弹框，则返回：
-          {
-        "popup_exists": false,
-              "popup_cancel_button": null,
+          {{
+              "popup_exists": false,
               "button_coordinates": null
-          }
+          }}
         '''
 
     def _process_response(self, response_json: Dict) -> Dict:
@@ -276,6 +274,11 @@ class VisionModelService:
             content = choice.get('message', {}).get('content', {})
             if isinstance(content, str):
                 try:
+                    if content.startswith('```json'):
+                        content = content[7:]
+                        if content.endswith('```'):
+                            content = content[:-3]
+                            return json.loads(content)
                     return json.loads(content)  # 假设响应内容直接是JSON字符串
                 except json.JSONDecodeError as e:
                     raise Exception(f"无效的JSON格式: {str(e)}")

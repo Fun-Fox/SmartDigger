@@ -7,3 +7,4 @@ opencv-python~=4.11.0.86
 flask~=3.1.0
 schedule~=1.2.2
 numpy~=2.0.1
+uiautomator2~=3.2.9

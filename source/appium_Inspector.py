@@ -34,8 +34,9 @@ class AppiumInspector:
             "appWaitDuration": int(os.getenv('APP_WAIT_DURATION')),
             "language": os.getenv('LANGUAGE'),
             "uiautomator2ServerInstallTimeout": int(os.getenv('UIAUTOMATOR2_SERVER_INSTALL_TIMEOUT')),
-            "skipServerInstallation": os.getenv('SKIP_SERVER_INSTALLATION') == 'True',
-            "noReset": os.getenv('NO_RESET') == 'True'
+            # "skipServerInstallation": os.getenv('SKIP_SERVER_INSTALLATION') == 'True',
+            "noReset": os.getenv('NO_RESET') == 'True',
+            "disableWindowAnimation": True
         }
         return webdriver.Remote(os.getenv('APPIUM_SERVER_URL'),
                                 options=UiAutomator2Options().load_capabilities(capabilities))
@@ -52,11 +53,12 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
     screenshot_id = f'{device_name}_{timestamp}_{app_package}'
 
     image_processor = ImageProcessor()
+    # 保存screenshot_image
+    # screenshot_image.save(f"{screenshot_id}_original.png")
 
     # 处理图像
     grayscale_image = image_processor.convert_to_grayscale(screenshot_image)
     # logger.info(f"图像已转换为灰度图像")
-
     # clickable_elements = [element for element in xml_root.iter() if element.get("clickable") == "true"]
     clickable_elements_bounds_list = [(elements.get('bounds'), i) for i, elements in enumerate(clickable_elements)
                                       if elements.get('bounds')]
@@ -83,7 +85,7 @@ def diagnose_and_handle_lvm(grayscale_image, screen_resolution):
         vision_model_service = VisionModelService(screen_resolution=screen_resolution)
         analysis_result = vision_model_service.analyze_screenshot(
             grayscale_image)
-        if analysis_result.get('button_coordinates', False):
+        if analysis_result.get('popup_exists', False):
             button_coordinates = analysis_result.get('button_coordinates')
             x = button_coordinates.get('x')
             y = button_coordinates.get('y')

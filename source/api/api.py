@@ -69,14 +69,14 @@ def diagnose():
         # 调用诊断服务
         try:
             if 'resolution' in data:
-                center_x, center_y = lvm_analysis(
+                center_x, center_y, template_file_name = lvm_analysis(
                     # todo 将screenshot_bytes 转为灰度图像，并且存储到本地
                     # todo 分辨率的传输
                     screenshot_bytes, data['resolution'], data['devices_name']
                 )
 
-            elif 'xml_file' in data:
-                center_x, center_y = vision_analysis(
+            elif 'xml_file' in data and data['xml_file'] != "" and data['xml_file'] is not None:
+                center_x, center_y, template_file_name = vision_analysis(
                     screenshot_bytes, data['xml_file'], data['devices_name']
                 )
             else:
@@ -86,10 +86,18 @@ def diagnose():
                 return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500
 
             logger.info(f"视觉诊断结果: ({center_x}, {center_y})")
-            return jsonify({
-                "msg": f"视觉诊断为弹窗，跳过的坐标为: ({center_x}, {center_y})",
-                "script": adb_tap_code(data['devices_name'], center_x, center_y).strip()
-            }), 200
+
+            if template_file_name:
+                return jsonify({
+                    "msg": f"弹窗模版相似度匹配成功，跳过的坐标为: ({center_x}, {center_y})",
+                    "script": adb_tap_code(data['devices_name'], center_x, center_y).strip(),
+                    "template_file_name": template_file_name
+                }), 200
+            else:
+                return jsonify({
+                    "msg": f"视觉诊断为弹窗，跳过的坐标为: ({center_x}, {center_y})",
+                    "script": adb_tap_code(data['devices_name'], center_x, center_y).strip(),
+                }), 200
 
         except Exception as e:
             logger.error(f"诊断服务调用失败: {str(e)}")

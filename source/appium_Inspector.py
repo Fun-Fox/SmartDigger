@@ -1,3 +1,5 @@
+from typing import Any
+
 from appium import webdriver
 from PIL import Image
 import os
@@ -81,6 +83,10 @@ def capture_and_mark_elements(screenshot_image, device_name, app_package, clicka
 
 
 def diagnose_and_handle_lvm(grayscale_image, screen_resolution):
+    """
+
+    :rtype: object
+    """
     try:
         vision_model_service = VisionModelService(screen_resolution=screen_resolution)
         analysis_result = vision_model_service.analyze_screenshot(

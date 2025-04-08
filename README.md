@@ -6,6 +6,10 @@ SmartDigger 是一个基于 Appium 及视觉大模型的智能移动应用测试
 
 ![img.png](doc/flow.png)
 
+## WebUI界面
+
+![img.png](doc/case-3-demo.png)
+
 ## 功能特性
 
 - **设备信息获取**：自动识别连接的 Android 设备，获取设备名称、分辨率等信息

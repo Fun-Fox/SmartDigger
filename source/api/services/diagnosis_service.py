@@ -70,11 +70,11 @@ def vision_analysis(screenshot_bytes, xml_page_struct, device_name, ):
             logger.info("模版匹配成功，查询模版匹配坐标数据不存在")
             # 异常情况-备用路线
             return popup_analysis(recorder, is_more_clickable_elements,
-                                  marked_screenshot_image, non_clickable_area_image, screenshot_id), None
+                                  marked_screenshot_image, non_clickable_area_image, screenshot_id)
         else:
             # 去调用视觉API判断模版对应的内容
             return popup_analysis(recorder, is_more_clickable_elements,
-                                  marked_screenshot_image, non_clickable_area_image, screenshot_id), None
+                                  marked_screenshot_image, non_clickable_area_image, screenshot_id)
 
     except Exception as e:
         raise e
@@ -127,6 +127,8 @@ def lvm_analysis(screenshot_bytes, screen_resolution, device_name):
             # 保存灰度图和前景图像
             save_images_async_gray(grayscale_image, foreground_image, device_name, screenshot_id, center_x, center_y)
             return center_x, center_y, None
+        else:
+            return None, None, None
     except Exception as e:
         raise e
 
@@ -174,9 +176,10 @@ def popup_analysis(recorder, is_more_clickable_elements, marked_screenshot_image
         template_dir = os.path.join(project_root, os.getenv('TEMPLATE_DIR'))
 
         # 异步保存图像
-        save_images_async(marked_screenshot_image, non_clickable_area_image, directory_path, template_dir,
-                          screenshot_id, center_x, center_y)
-        return center_x, center_y
+        if center_x is not None and center_y is not None:
+            save_images_async(marked_screenshot_image, non_clickable_area_image, directory_path, template_dir,
+                              screenshot_id, center_x, center_y)
+        return center_x, center_y, None
     except Exception as e:
         logger.error(f"运行视觉模型定位时发生错误: {e}")
         recorder.close()

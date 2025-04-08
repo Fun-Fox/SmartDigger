@@ -76,11 +76,13 @@ def diagnose():
                 )
 
             elif 'xml_file' in data and data['xml_file'] != "" and data['xml_file'] is not None:
+
                 center_x, center_y, template_file_name = vision_analysis(
                     screenshot_bytes, data['xml_file'], data['devices_name']
                 )
             else:
                 raise Exception("xml_file 或者 resolution 其中一个必填")
+
             if center_x is None or center_y is None:
                 logger.info("系统诊断为非弹窗，麻烦人工排查")
                 return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500

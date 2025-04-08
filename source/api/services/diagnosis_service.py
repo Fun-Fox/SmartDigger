@@ -166,6 +166,7 @@ def popup_analysis(recorder, is_more_clickable_elements, marked_screenshot_image
                 # 获取弹窗中心点
                 element_manager = ElementManager(recorder)
                 center_x, center_y = element_manager.element_center(popup_id, screenshot_id)
+                logger.info(f"坐标为: {center_x},{center_y}")
 
         # 保存图像
         device_name = screenshot_id.split('_')[0]

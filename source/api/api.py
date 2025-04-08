@@ -68,7 +68,7 @@ def diagnose():
 
         # 调用诊断服务
         try:
-            if 'resolution' in data:
+            if 'resolution' in data and data['resolution'] != "" and data['resolution'] is not None:
                 center_x, center_y, template_file_name = lvm_analysis(
                     # todo 将screenshot_bytes 转为灰度图像，并且存储到本地
                     # todo 分辨率的传输

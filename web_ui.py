@@ -83,25 +83,36 @@ def diagnose(screenshot_file, xml_file, devices_name, resolution):
 current_file_path = os.path.abspath(__file__)
 project_root = os.path.dirname(current_file_path)
 
-iface = gr.Interface(
-    fn=diagnose,
-    inputs=[
-        gr.File(label="手机屏幕截图文件", value=os.path.join(project_root, "source/test/test-3.jpeg")),
-        # 修改：设置默认值为 test/test-3.jpg
-        gr.File(label="XML层级结构文件（可选）", value=os.path.join(project_root, "source/test/hierarchy-3.xml")),
-        # 修改：设置默认值为 test/hierachy-3.xml
-        gr.Textbox(label="设备名称", value="172.25.13.8:5555"),  # 修改：设置默认设备名称
-        gr.Textbox(label="设备分辨率（可选）", value="(1440, 3120)")  # 修改：设置默认分辨率为 (1440, 3120)
-    ],
-    outputs=[
-        gr.Textbox(label="诊断结果消息"),
-        gr.Textbox(label="生成的 ADB 点击脚本"),
-        gr.Image(label="处理后的截图"),
-        gr.Image(label="模板图片")
-    ],
-    title="SmartDigger 诊断中心-弹窗诊断",
-    description="使用 Gradio 调用本地 5000 端口的诊断接口，优化后的界面提供更直观的操作体验。"
-)
+# 使用 Blocks API 自定义布局
+with gr.Blocks() as demo:
+    gr.Markdown("## SmartDigger 诊断中心-弹窗诊断")
+    gr.Markdown("使用 Gradio 调用本地 5000 端口的诊断接口，优化后的界面提供更直观的操作体验。")
+
+    with gr.Row():
+        with gr.Column():
+            screenshot_input = gr.File(label="手机屏幕截图文件",
+                                       value=os.path.join(project_root, "source/test/test-3.jpeg"))
+            xml_input = gr.File(label="XML层级结构文件（可选）",
+                                value=os.path.join(project_root, "source/test/hierarchy-3.xml"))
+            devices_input = gr.Textbox(label="设备名称", value="172.25.13.8:5555")
+            resolution_input = gr.Textbox(label="设备分辨率（可选）", value="(1440, 3120)")
+            submit_button = gr.Button("提交诊断")
+
+        with gr.Column():
+            msg_output = gr.Textbox(label="诊断结果消息")
+            script_output = gr.Textbox(label="生成的 ADB 点击脚本")
+
+    # 将两张图片放在同一行
+    with gr.Row():
+        processed_image_output = gr.Image(label="关闭弹窗坐标点（使用黄色星标识）")
+        template_image_output = gr.Image(label="模版库保存的弹窗模板")
+
+    # 绑定提交事件
+    submit_button.click(
+        diagnose,
+        inputs=[screenshot_input, xml_input, devices_input, resolution_input],
+        outputs=[msg_output, script_output, processed_image_output, template_image_output]
+    )
 
 if __name__ == "__main__":
-    iface.launch(server_port=5001)  # 修改：在端口 5001 上启动
+    demo.launch(server_port=5001)

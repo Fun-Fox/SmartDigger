@@ -10,3 +10,4 @@ numpy~=2.0.1
 uiautomator2~=3.2.9
 gradio==5.23.3
 huggingface-hub==0.29.2
+pyyaml==6.0.2

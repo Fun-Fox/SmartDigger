@@ -13,7 +13,7 @@ SmartDigger 是一个基于视觉大模型的智能移动应用自动化任务�
 
 ## 如何部署及 WebUI 示例启动
 
-- 复制.env.sample 为 .env 文件，并修改参数
+- 复制.env.sample 为 .env 文件，并修改参数`VISION_MODEL_API_KEY`参数为你的 硅基流动 API Key
 - 执行 python api_run.py 启动服务
 - 执行 python web_run.py 启动 WebUI
 - 访问 http://127.0.0.1:5001

@@ -80,7 +80,17 @@ kill -9 pid
 
 ## 运行效果
 
+### 方案一
+
 ![img.png](doc/case-1-img.png)
+![img.png](doc/case-1-template.png)
+
+### 方案二
 
 ![img.png](doc/case-2-img.png)
+
+![img.png](doc/case-2-template.png)
+
+
+
 

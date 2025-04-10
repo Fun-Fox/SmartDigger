@@ -103,7 +103,7 @@ def run_appium_inspector_by_lvm(device_name, app_package, app_activity, device_r
     # 获取截图
     screenshot = driver.get_screenshot_as_png()
 
-    center_x, center_y = lvm_analysis(screenshot_bytes=screenshot, screen_resolution=device_resolution,
+    center_x, center_y,template_file = lvm_analysis(screenshot_bytes=screenshot, screen_resolution=device_resolution,
                                       device_name=device_name)
     if center_x is not None and center_y is not None:
         logger.info(f"坐标为: {center_x},{center_y}")

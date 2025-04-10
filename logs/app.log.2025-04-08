@@ -1,0 +1,138 @@
+2025-04-08 15:26:37,439 - source.api.services.diagnosis_service - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 53 - 开始进行模板匹配...
+2025-04-08 15:26:37,444 - source.api.utils.template_matcher - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 41 - 未匹配到任何弹窗模板
+2025-04-08 15:26:39,289 - source.services.vision_model - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 107 - 收到视觉模型API响应:{
+  "id": "0196144b4172d778cf0a7a1cad70dbe7",
+  "object": "chat.completion",
+  "created": 1744097198,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n    \"popup_exists\": true,\n    \"popup_cancel_button\": 2\n}"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3358,
+    "completion_tokens": 18,
+    "total_tokens": 3376
+  },
+  "system_fingerprint": ""
+}
+2025-04-08 15:26:39,290 - source.appium_Inspector - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 113 - 视觉分析结果:{'popup_exists': True, 'popup_cancel_button': 2}
+2025-04-08 15:26:39,291 - source.api.services.diagnosis_service - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 165 - 视觉模型检测到弹窗，弹窗标识为: 2，正在关闭...
+2025-04-08 15:26:39,293 - source.api.services.diagnosis_service - INFO - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 169 - 坐标为: 540,1805
+2025-04-08 15:26:39,296 - source.api.api - ERROR - 6cdce3f5-ff4b-4802-b4db-4c22b87ba2dc - 103 - 诊断服务调用失败: not enough values to unpack (expected 3, got 2)
+2025-04-08 15:26:39,297 - source.api.services.diagnosis_service - INFO - 子线程：14e7f1d4-db6c-43d8-a3c9-c52cf230f6fa - 218 - 保存截图到: D:\Code\SmartDigger\screenshots\172.25.13.8\172.25.13.8_5555_20250408_152630_api_marked_screenshot.jpeg
+2025-04-08 15:26:39,329 - source.api.services.diagnosis_service - INFO - 子线程：3465601b-4e23-41fe-9272-c7a01d9a5fff - 218 - 保存截图到: D:\Code\SmartDigger\template\172.25.13.8_5555_20250408_152630_api.jpeg
+2025-04-08 15:29:03,344 - source.api.services.diagnosis_service - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 53 - 开始进行模板匹配...
+2025-04-08 15:29:03,351 - source.api.utils.template_matcher - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 41 - 未匹配到任何弹窗模板
+2025-04-08 15:29:05,428 - source.services.vision_model - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 107 - 收到视觉模型API响应:{
+  "id": "0196144d7bab59e226695e5e735c648b",
+  "object": "chat.completion",
+  "created": 1744097344,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n    \"popup_exists\": true,\n    \"popup_cancel_button\": 2\n}\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3358,
+    "completion_tokens": 22,
+    "total_tokens": 3380
+  },
+  "system_fingerprint": ""
+}
+2025-04-08 15:29:05,429 - source.appium_Inspector - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 113 - 视觉分析结果:{'popup_exists': True, 'popup_cancel_button': 2}
+2025-04-08 15:29:05,430 - source.api.services.diagnosis_service - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 165 - 视觉模型检测到弹窗，弹窗标识为: 2，正在关闭...
+2025-04-08 15:29:05,433 - source.api.services.diagnosis_service - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 169 - 坐标为: 540,1805
+2025-04-08 15:29:05,436 - source.api.api - INFO - 69ba6b08-2094-4f52-8536-bc44b8513a01 - 89 - 视觉诊断结果: (540, 1805)
+2025-04-08 15:29:05,436 - source.api.services.diagnosis_service - INFO - 子线程：eb44bbd9-e502-4a92-b133-1136db5e9064 - 218 - 保存截图到: D:\Code\SmartDigger\screenshots\172.25.13.8\172.25.13.8_5555_20250408_152856_api_marked_screenshot.jpeg
+2025-04-08 15:29:05,481 - source.api.services.diagnosis_service - INFO - 子线程：d64b2de9-00b7-42de-a47b-f8c7d1690d6f - 218 - 保存截图到: D:\Code\SmartDigger\template\172.25.13.8_5555_20250408_152856_api.jpeg
+2025-04-08 15:32:37,608 - source.api.services.diagnosis_service - INFO - 1f735392-81df-470f-be38-30d46cc023e8 - 106 - 开始进行模板匹配...
+2025-04-08 15:32:37,702 - source.api.utils.template_matcher - INFO - 1f735392-81df-470f-be38-30d46cc023e8 - 41 - 未匹配到任何弹窗模板
+2025-04-08 15:32:39,590 - source.services.vision_model - INFO - 1f735392-81df-470f-be38-30d46cc023e8 - 107 - 收到视觉模型API响应:{
+  "id": "01961450c0668f7abd8b7c19336fa963",
+  "object": "chat.completion",
+  "created": 1744097558,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n    \"popup_exists\": false,\n    \"button_coordinates\": null\n}"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3416,
+    "completion_tokens": 16,
+    "total_tokens": 3432
+  },
+  "system_fingerprint": ""
+}
+2025-04-08 15:32:39,592 - source.api.api - ERROR - 1f735392-81df-470f-be38-30d46cc023e8 - 104 - 诊断服务调用失败: cannot unpack non-iterable NoneType object
+2025-04-08 15:34:32,066 - source.api.services.diagnosis_service - INFO - f72bfd9f-a44a-4a1b-bae5-922b5f7dfaa1 - 106 - 开始进行模板匹配...
+2025-04-08 15:34:32,127 - source.api.utils.template_matcher - INFO - f72bfd9f-a44a-4a1b-bae5-922b5f7dfaa1 - 41 - 未匹配到任何弹窗模板
+2025-04-08 15:34:34,505 - source.services.vision_model - INFO - f72bfd9f-a44a-4a1b-bae5-922b5f7dfaa1 - 107 - 收到视觉模型API响应:{
+  "id": "01961452803250796c2964f6fbaf48fa",
+  "object": "chat.completion",
+  "created": 1744097673,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n    \"popup_exists\": false,\n    \"button_coordinates\": null\n}\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3416,
+    "completion_tokens": 20,
+    "total_tokens": 3436
+  },
+  "system_fingerprint": ""
+}
+2025-04-08 15:34:34,507 - source.api.api - ERROR - f72bfd9f-a44a-4a1b-bae5-922b5f7dfaa1 - 104 - 诊断服务调用失败: cannot unpack non-iterable NoneType object
+2025-04-08 15:37:44,527 - source.api.services.diagnosis_service - INFO - d9f93211-bb2f-46f0-a3c0-856038b93458 - 106 - 开始进行模板匹配...
+2025-04-08 15:37:44,594 - source.api.utils.template_matcher - INFO - d9f93211-bb2f-46f0-a3c0-856038b93458 - 41 - 未匹配到任何弹窗模板
+2025-04-08 15:37:46,996 - source.services.vision_model - INFO - d9f93211-bb2f-46f0-a3c0-856038b93458 - 107 - 收到视觉模型API响应:{
+  "id": "019614556fc25e44dc5a870cfc088516",
+  "object": "chat.completion",
+  "created": 1744097865,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n    \"popup_exists\": true,\n    \"button_coordinates\": {\n        \"x\": 540,\n        \"y\": 1800\n    }\n}\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3416,
+    "completion_tokens": 40,
+    "total_tokens": 3456
+  },
+  "system_fingerprint": ""
+}
+2025-04-08 15:37:46,997 - source.appium_Inspector - INFO - d9f93211-bb2f-46f0-a3c0-856038b93458 - 98 - 视觉模型自己判断，关闭弹窗的按钮中心坐标为: x=540, y=1800
+2025-04-08 15:37:47,000 - source.api.api - INFO - d9f93211-bb2f-46f0-a3c0-856038b93458 - 89 - 视觉诊断结果: (540, 1800)
+2025-04-08 15:37:47,002 - source.api.services.diagnosis_service - INFO - 子线程：b3d555d5-3494-47ac-81aa-1e03c32b74ac - 219 - 保存截图到: D:\Code\SmartDigger\screenshots\172.25.13.8_5555\172.25.13.8_5555_20250408_153744_grayscale_image.jpeg
+2025-04-08 15:37:47,027 - source.api.services.diagnosis_service - INFO - 子线程：e79aa83e-5bf6-4e15-9dbe-a4f7d2e0e410 - 219 - 保存截图到: D:\Code\SmartDigger\template\172.25.13.8_5555_20250408_153744.jpeg

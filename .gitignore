@@ -12,4 +12,5 @@ screenshots/
 *.sql
 *.md
 *.env
+/__pycache__
 

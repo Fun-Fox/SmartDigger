@@ -13,4 +13,5 @@ screenshots/
 *.md
 *.env
 /__pycache__
+.gradio
 

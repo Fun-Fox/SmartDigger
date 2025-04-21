@@ -84,10 +84,10 @@ def diagnose():
                 raise Exception("xml_file 或者 resolution 其中一个必填")
 
             if center_x is None or center_y is None:
-                logger.info("系统诊断为非弹窗，麻烦人工排查")
-                return jsonify({"msg": "系统诊断为非弹窗，麻烦人工排查"}), 500
+                logger.info(f"当前设备{data['devices_name']}系统诊断为非弹窗，麻烦人工排查")
+                return jsonify({"msg": f"当前设备{data['devices_name']},系统诊断为非弹窗，麻烦人工排查"}), 500
 
-            logger.info(f"视觉诊断结果: ({center_x}, {center_y})")
+            logger.info(f"当前设备{data['devices_name']},视觉诊断结果: ({center_x}, {center_y})")
 
             if template_file_name:
                 return jsonify({
@@ -102,8 +102,8 @@ def diagnose():
                 }), 200
 
         except Exception as e:
-            logger.error(f"诊断服务调用失败: {str(e)}")
-            return jsonify({"msg": "诊断服务调用失败，请稍后重试"}), 500
+            logger.error(f"当前设备{data['devices_name']},诊断服务调用失败: {str(e)}")
+            return jsonify({"msg": f"当前设备{data['devices_name']},诊断服务调用失败，请稍后重试"}), 500
 
     except Exception as e:
         logger.error(f"诊断失败: {str(e)}")

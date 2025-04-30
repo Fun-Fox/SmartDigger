@@ -23,20 +23,25 @@ class VisionModelService:
     # DEFAULT_MODEL = "Qwen/Qwen2.5-VL-32B-Instruct"
 
     # DEFAULT_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct"
-    DEFAULT_MODEL = "Pro/Qwen/Qwen2.5-VL-7B-Instruct"
+    DEFAULT_MODEL = os.getenv("LOCAL_VISION_MODEL_NAME") if os.getenv(
+        "LOCAL_VISION_MODEL_NAME") != "" else "Qwen/Qwen2.5-VL-32B-Instruct"
 
     def __init__(self, screen_resolution=""):
         """初始化视觉模型服务，配置API信息。"""
-
+        self.is_cloud_model = True if os.getenv('LOCAL_VISION_MODEL_API_URL') == '' else False
         self.api_url = self._get_api_url()
         self.api_key = self._get_api_key()
+        # self.api_key
         self.logger = setup_logger(__name__)
         self.screen_resolution = screen_resolution
 
     @staticmethod
     def _get_api_url() -> str:
         """从环境变量中获取视觉模型API的URL。"""
-        url = os.getenv('VISION_MODEL_API_URL')
+        if os.getenv('LOCAL_VISION_MODEL_API_URL') == '':
+            url = os.getenv('VISION_MODEL_API_URL')
+        else:
+            url = os.getenv('LOCAL_VISION_MODEL_API_URL')
         if not url:
             raise ValueError("未配置视觉模型API的URL")
         return url
@@ -86,39 +91,55 @@ class VisionModelService:
             Exception: 如果分析失败或无法解析响应。
         """
         for attempt in range(self.MAX_RETRIES):
-            try:
-                # 将截图转换为Base64编码
-                marked_screenshot_base64 = self.convert_image_to_base64(marked_screenshot_image)
-                # raise Exception("analyze_screenshot 方法中发生意外错误")
+            # 将截图转换为Base64编码
+            marked_screenshot_base64 = self.convert_image_to_base64(marked_screenshot_image)
 
+            if self.is_cloud_model:
+                try:
+                    # raise Exception("analyze_screenshot 方法中发生意外错误")
+
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': f'Bearer {self.api_key}'
+                    }
+                    # 构建请求负载
+                    payload = self._build_payload(marked_screenshot_base64)
+                    # 打印格式化请求内容
+                    # self.logger.info("发送请求到视觉模型API:")
+                    # self.logger.info(f"URL: {self.api_url}")
+                    # self.logger.info(f"Headers: {json.dumps(headers, indent=2)}")
+                    # self.logger.info(f"Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+                    response = requests.post(self.api_url, json=payload, headers=headers)
+                    # 打印格式化响应内容
+                    self.logger.info(f"收到视觉模型API响应:{json.dumps(response.json(), indent=2, ensure_ascii=False)}")
+                    # self.logger.info(f"Status Code: {response.status_code}")
+                    # 处理响应
+                    if response.status_code == 200:
+                        if response.json().get("content") == "":
+                            raise Exception("视觉模型返回空结果")
+                        return self._process_response(response.json())
+
+                    self.logger.warning(f"第 {attempt + 1} 次尝试失败，状态码: {response.status_code}")
+
+                except Exception as e:
+                    self.logger.warning(f"第 {attempt + 1} 次尝试失败: {str(e)}")
+                    if attempt == self.MAX_RETRIES - 1:
+                        self.logger.error("所有尝试均失败")
+                        raise Exception(f"分析截图失败，尝试 {self.MAX_RETRIES} 次后仍未成功: {str(e)}")
+            else:
+                # 如果是本地模型调用
                 headers = {
                     'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {self.api_key}'
                 }
                 # 构建请求负载
                 payload = self._build_payload(marked_screenshot_base64)
-                # 打印格式化请求内容
-                # self.logger.info("发送请求到视觉模型API:")
-                # self.logger.info(f"URL: {self.api_url}")
-                # self.logger.info(f"Headers: {json.dumps(headers, indent=2)}")
-                # self.logger.info(f"Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+
                 response = requests.post(self.api_url, json=payload, headers=headers)
-                # 打印格式化响应内容
-                self.logger.info(f"收到视觉模型API响应:{json.dumps(response.json(), indent=2, ensure_ascii=False)}")
-                # self.logger.info(f"Status Code: {response.status_code}")
-                # 处理响应
                 if response.status_code == 200:
-                    if response.json().get("content") == "":
-                        raise Exception("视觉模型返回空结果")
-                    return self._process_response(response.json())
-
-                self.logger.warning(f"第 {attempt + 1} 次尝试失败，状态码: {response.status_code}")
-
-            except Exception as e:
-                self.logger.warning(f"第 {attempt + 1} 次尝试失败: {str(e)}")
-                if attempt == self.MAX_RETRIES - 1:
-                    self.logger.error("所有尝试均失败")
-                    raise Exception(f"分析截图失败，尝试 {self.MAX_RETRIES} 次后仍未成功: {str(e)}")
+                    return response.json().get("response", '')  # 直接返回本地模型的响应
+                else:
+                    self.logger.warning(f"本地模型调用失败，状态码: {response.status_code}")
+                    raise Exception(f"本地模型调用失败: {response.text}")
 
         raise Exception("analyze_screenshot 方法中发生意外错误")
 
@@ -187,6 +208,13 @@ class VisionModelService:
                 }
             ],
             "stream": False
+        } if self.is_cloud_model else {
+            {
+                "model": self.DEFAULT_MODEL,
+                "prompt": self._build_analysis_prompt() if self.screen_resolution == '' else self._build_analysis_prompt_co(
+                    self.screen_resolution),  # 提示词
+                "images": [f"data:image/jpeg;base64,{marked_screenshot_base64}"],  # 图片列表
+            }
         }
 
     @staticmethod

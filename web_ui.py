@@ -104,8 +104,10 @@ with gr.Blocks() as demo:
 
     # 将两张图片放在同一行
     with gr.Row():
-        processed_image_output = gr.Image(label="关闭弹窗坐标点（使用黄色星标识）")
-        template_image_output = gr.Image(label="模版库保存的弹窗模板")
+        with gr.Column():
+            processed_image_output = gr.Image(label="关闭弹窗坐标点（使用黄色星标识）",width=300,height=400)
+        with gr.Column():
+            template_image_output = gr.Image(label="模版库保存的弹窗模板",width=300,height=400)
 
     # 绑定提交事件
     submit_button.click(

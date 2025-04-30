@@ -92,6 +92,11 @@ kill -9 pid
 
 ![img.png](doc/case-2-template.png)
 
+### 本地视觉模型测试
+使用本地gemma3:27b-it-qat 进行了测试，效果不是很好
+![img.png](doc/test-6.png)
+![img.png](doc/test-7.png)
+
 
 
 

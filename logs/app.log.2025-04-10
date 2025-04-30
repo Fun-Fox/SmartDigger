@@ -1,0 +1,52 @@
+2025-04-10 16:57:36,929 - source.api.services.diagnosis_service - INFO - 子线程：26169be7-bc3a-4a4b-adef-54b59ca30c6a - 106 - 开始进行模板匹配...
+2025-04-10 16:57:36,935 - source.api.utils.template_matcher - INFO - 子线程：1661c6a3-faf3-4323-a1da-2478af48361e - 41 - 未匹配到任何弹窗模板
+2025-04-10 16:57:40,537 - source.services.vision_model - INFO - 子线程：0e7fb873-a7ab-476c-b6e1-b6bdf6b0a1f0 - 107 - 收到视觉模型API响应:{
+  "id": "01961eeb4ad5b4c292bc4111817bead3",
+  "object": "chat.completion",
+  "created": 1744275458,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n    \"popup_exists\": false,\n    \"button_coordinates\": null\n}\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5957,
+    "completion_tokens": 20,
+    "total_tokens": 5977
+  },
+  "system_fingerprint": ""
+}
+2025-04-10 16:57:40,544 - __main__ - ERROR - 子线程：e638f7b4-5b00-44a8-a68a-0eefc2680a58 - 137 - 发生意外错误: too many values to unpack (expected 2)
+2025-04-10 17:08:26,434 - source.tools.adb - ERROR - 子线程：3a0191fc-ea8b-4d68-be7d-4db5424b7bb1 - 80 - 获取应用活动失败: list index out of range
+2025-04-10 17:08:26,434 - __main__ - ERROR - 子线程：79c6b263-8369-45cb-ae88-01979bf57389 - 137 - 发生意外错误: list index out of range
+2025-04-10 17:08:45,590 - source.api.services.diagnosis_service - INFO - 子线程：e19254b4-4983-4167-9e1a-f54549249aad - 106 - 开始进行模板匹配...
+2025-04-10 17:08:45,596 - source.api.utils.template_matcher - INFO - 子线程：cf8e9890-8163-4683-a7d6-4b4f592eb9fb - 41 - 未匹配到任何弹窗模板
+2025-04-10 17:08:48,734 - source.services.vision_model - INFO - 子线程：dfad9218-310b-4c4f-923d-8618f4a2776e - 107 - 收到视觉模型API响应:{
+  "id": "01961ef57dbe015f9bf6bc4fa4c35994",
+  "object": "chat.completion",
+  "created": 1744276127,
+  "model": "Pro/Qwen/Qwen2.5-VL-7B-Instruct",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\n    \"popup_exists\": false,\n    \"button_coordinates\": null\n}\n```"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5957,
+    "completion_tokens": 20,
+    "total_tokens": 5977
+  },
+  "system_fingerprint": ""
+}
+2025-04-10 17:08:48,736 - __main__ - INFO - 子线程：a9874829-7511-4053-996f-f414c33633a7 - 112 - 没有找到弹窗

@@ -93,8 +93,10 @@ class VisionModelService:
         for attempt in range(self.MAX_RETRIES):
             # 将截图转换为Base64编码
             marked_screenshot_base64 = self.convert_image_to_base64(marked_screenshot_image)
-
+            self.logger.info(f"正在使用视觉模型API分析截图...")
             if self.is_cloud_model:
+                self.logger.info(f"使用云端视觉模型API...")
+
                 try:
                     # raise Exception("analyze_screenshot 方法中发生意外错误")
 
@@ -127,19 +129,32 @@ class VisionModelService:
                         self.logger.error("所有尝试均失败")
                         raise Exception(f"分析截图失败，尝试 {self.MAX_RETRIES} 次后仍未成功: {str(e)}")
             else:
+                self.logger.info(f"使用本地视觉模型API...")
                 # 如果是本地模型调用
                 headers = {
                     'Content-Type': 'application/json',
                 }
-                # 构建请求负载
-                payload = self._build_payload(marked_screenshot_base64)
+                try:
+                    # 构建请求负载
+                    payload = self._build_payload(marked_screenshot_base64)
+                    # self.logger.info(payload)
+                    # https://ai.google.dev/gemma/docs/integrations/ollama?hl=zh-cn API 文档
+                    response = requests.post(self.api_url, json=payload, headers=headers)
+                    if response.status_code == 200:
+                        self.logger.info(f"{response.text}")
 
-                response = requests.post(self.api_url, json=payload, headers=headers)
-                if response.status_code == 200:
-                    return response.json().get("response", '')  # 直接返回本地模型的响应
-                else:
-                    self.logger.warning(f"本地模型调用失败，状态码: {response.status_code}")
-                    raise Exception(f"本地模型调用失败: {response.text}")
+                        response_json = json.loads(response.json().get("response", ''))
+                        self.logger.info(
+                            f"收到视觉模型API响应:{json.dumps(response_json, indent=2, ensure_ascii=False)}")
+                        return response_json # 直接返回本地模型的响应
+                    else:
+                        self.logger.warning(f"本地模型调用失败，状态码: {response.status_code}")
+                        raise Exception(f"本地模型调用失败: {response.text}")
+                except Exception as e:
+                    self.logger.warning(f"本地模型调用失败: {str(e)}")
+                    if attempt == self.MAX_RETRIES - 1:
+                        self.logger.error("所有尝试均失败")
+                        raise Exception(f"分析截图失败，尝试 {self.MAX_RETRIES} 次后仍未成功: {str(e)}")
 
         raise Exception("analyze_screenshot 方法中发生意外错误")
 
@@ -209,13 +224,14 @@ class VisionModelService:
             ],
             "stream": False
         } if self.is_cloud_model else {
-            {
                 "model": self.DEFAULT_MODEL,
                 "prompt": self._build_analysis_prompt() if self.screen_resolution == '' else self._build_analysis_prompt_co(
                     self.screen_resolution),  # 提示词
-                "images": [f"data:image/jpeg;base64,{marked_screenshot_base64}"],  # 图片列表
-            }
+                "images": [f"{marked_screenshot_base64}"],  # 图片列表
+                "format": "json",
+                "stream": False
         }
+
 
     @staticmethod
     def _build_analysis_prompt() -> str:
